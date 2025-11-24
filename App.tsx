@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import React, { useState } from 'react';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import ScheduleManagement from './pages/ScheduleManagement';
@@ -37,37 +38,22 @@ const Layout = ({ children, darkMode, toggleTheme }: LayoutProps) => {
 };
 
 const App = () => {
-  // Inicializa o estado lendo do localStorage
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+  const [darkMode, setDarkMode] = useState(false);
 
   const toggleTheme = () => setDarkMode(prev => !prev);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        {/* Rota Raiz é o Login */}
-        <Route path="/" element={<Login darkMode={darkMode} />} />
+        {/* Rota de Login sem o Layout (Sidebar) */}
+        <Route path="/login" element={<Login darkMode={darkMode} toggleTheme={toggleTheme} />} />
 
-        {/* Dashboard Principal */}
-        <Route path="/dashboard" element={
+        {/* Rotas Protegidas com Layout */}
+        <Route path="/" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Dashboard darkMode={darkMode} toggleTheme={toggleTheme} />
           </Layout>
         } />
-
-        {/* Rotas Protegidas */}
         <Route path="/schedule" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <ScheduleManagement darkMode={darkMode} />
@@ -118,6 +104,7 @@ const App = () => {
             <InstructorDetails darkMode={darkMode} />
           </Layout>
         } />
+        {/* Rotas para Módulo Física */}
         <Route path="/physical" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <PhysicalEvaluation darkMode={darkMode} />
@@ -128,11 +115,13 @@ const App = () => {
             <PhysicalEvaluationForm darkMode={darkMode} />
           </Layout>
         } />
+        {/* Rotas para Evolução */}
         <Route path="/records" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <EvolutionRecords darkMode={darkMode} />
           </Layout>
         } />
+        {/* Rotas para Aulas */}
         <Route path="/classes" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Classes darkMode={darkMode} />
@@ -149,10 +138,10 @@ const App = () => {
           </Layout>
         } />
         
-        {/* Redireciona 404 para Login */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Redireciona qualquer rota desconhecida para o Login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

@@ -33,8 +33,7 @@ const Login: React.FC<LoginProps> = ({ darkMode }) => {
     // Simula delay de autenticação
     setTimeout(() => {
       setIsLoading(false);
-      // Redireciona para o Dashboard
-      navigate('/dashboard');
+      navigate('/');
     }, 1500);
   };
 
