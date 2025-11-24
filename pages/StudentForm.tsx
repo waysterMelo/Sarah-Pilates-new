@@ -11,7 +11,11 @@ import {
   ChevronRight,
   ChevronLeft,
   Mail,
-  MapPin
+  MapPin,
+  HeartPulse,
+  UploadCloud,
+  File,
+  X
 } from 'lucide-react';
 
 interface StudentFormProps {
@@ -26,13 +30,22 @@ interface StudentData {
   address: string;
   emergencyContact: string;
   emergencyPhone: string;
-  medicalHistory: string;
+  // Medical History Expanded
+  medical: {
+    allergies: string;
+    surgeries: string;
+    medications: string;
+    restrictions: string;
+    heartCondition: boolean;
+    dizziness: boolean;
+    boneJointProblem: boolean;
+    diabetes: boolean;
+    hypertension: boolean;
+  };
   objectives: string;
   plan: string;
   status: 'Ativo' | 'Inativo' | 'Suspenso';
-  registrationDate: string;
-  lastClass: string;
-  totalClasses: number;
+  documents: Array<{ name: string; size: string; type: string }>;
 }
 
 const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
@@ -50,21 +63,29 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
     address: '',
     emergencyContact: '',
     emergencyPhone: '',
-    medicalHistory: '',
+    medical: {
+      allergies: '',
+      surgeries: '',
+      medications: '',
+      restrictions: '',
+      heartCondition: false,
+      dizziness: false,
+      boneJointProblem: false,
+      diabetes: false,
+      hypertension: false
+    },
     objectives: '',
     plan: 'Mensal - 8 aulas',
     status: 'Ativo',
-    registrationDate: new Date().toISOString().split('T')[0],
-    lastClass: '',
-    totalClasses: 0
+    documents: []
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const steps = [
-    { id: 1, title: 'Dados Básicos', icon: User },
-    { id: 2, title: 'Contato & Plano', icon: Phone },
-    { id: 3, title: 'Informações Extras', icon: FileText }
+    { id: 1, title: 'Dados Pessoais', icon: User },
+    { id: 2, title: 'Anamnese & Saúde', icon: HeartPulse },
+    { id: 3, title: 'Documentos & Plano', icon: FileText }
   ];
 
   useEffect(() => {
@@ -78,14 +99,13 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
           phone: s.phone,
           plan: s.plan || 'Mensal - 8 aulas',
           status: s.status,
-          // Fill other fields with mock data or defaults since they aren't in the list view
           birthDate: prev.birthDate || '1990-01-01',
           address: prev.address || 'Endereço não informado',
           emergencyContact: prev.emergencyContact || 'Contato Emergência',
           emergencyPhone: prev.emergencyPhone || '(00) 00000-0000',
         }));
       } else {
-        // Fallback mock data if navigated directly via URL
+        // Mock fallback
         setFormData({
           name: 'Ana Silva Santos',
           email: 'ana.silva@email.com',
@@ -94,13 +114,23 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
           address: 'Rua das Flores, 123',
           emergencyContact: 'Maria Silva',
           emergencyPhone: '(11) 98888-8888',
-          medicalHistory: 'Nenhuma restrição',
-          objectives: 'Melhorar postura',
+          medical: {
+             allergies: 'Dipirona',
+             surgeries: 'Apêndice (2015)',
+             medications: 'Anticoncepcional',
+             restrictions: 'Nenhuma',
+             heartCondition: false,
+             dizziness: true,
+             boneJointProblem: false,
+             diabetes: false,
+             hypertension: false
+          },
+          objectives: 'Melhorar postura e flexibilidade',
           plan: 'Mensal - 8 aulas',
           status: 'Ativo',
-          registrationDate: '2023-01-15',
-          lastClass: '2023-10-10',
-          totalClasses: 45
+          documents: [
+            { name: 'Atestado_Medico.pdf', size: '2.4 MB', type: 'PDF' }
+          ]
         });
       }
     }
@@ -112,14 +142,8 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
     if (step === 1) {
       if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
       if (!formData.email.trim()) newErrors.email = 'Email é obrigatório';
-      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email inválido';
       if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
       if (!formData.birthDate) newErrors.birthDate = 'Data de nascimento é obrigatória';
-    }
-
-    if (step === 2) {
-      if (!formData.emergencyContact.trim()) newErrors.emergencyContact = 'Contato de emergência é obrigatório';
-      if (!formData.emergencyPhone.trim()) newErrors.emergencyPhone = 'Telefone de emergência é obrigatório';
     }
 
     setErrors(newErrors);
@@ -145,26 +169,37 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const planOptions = [
-    'Platinum',
-    'Gold',
-    'Silver',
-    'Mensal - 4 aulas',
-    'Mensal - 8 aulas',
-    'Mensal - 12 aulas',
-    'Trimestral - 24 aulas',
-    'Trimestral - 36 aulas',
-    'Semestral - 48 aulas',
-    'Anual - 96 aulas',
-    'Aulas Avulsas'
-  ];
+  const handleMedicalChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      medical: { ...prev.medical, [field]: value }
+    }));
+  };
 
-  // Shared Styles
+  const handleAddDocument = () => {
+    // Simulação de upload
+    const newDoc = {
+      name: `Documento_${formData.documents.length + 1}.pdf`,
+      size: '1.2 MB',
+      type: 'PDF'
+    };
+    setFormData(prev => ({
+      ...prev,
+      documents: [...prev.documents, newDoc]
+    }));
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Styles
   const inputClass = `w-full px-4 py-3 rounded-xl outline-none border transition-all ${
     darkMode 
       ? 'bg-white/5 border-white/10 text-white focus:border-primary-500 focus:bg-white/10 placeholder:text-slate-600' 
@@ -175,15 +210,14 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
     darkMode ? 'text-slate-400' : 'text-slate-500'
   }`;
 
+  const checkboxClass = `w-5 h-5 rounded border flex items-center justify-center transition-all cursor-pointer ${
+     darkMode ? 'border-white/20' : 'border-gray-300'
+  }`;
+
   return (
     <main className={`min-h-screen relative p-6 transition-colors duration-500 ${
       darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-gray-900'
     }`}>
-      {/* Background */}
-      <div className={`fixed top-0 right-0 w-1/2 h-full rounded-full blur-[120px] pointer-events-none opacity-20 ${
-        darkMode ? 'bg-primary-900/20' : 'bg-primary-200/40'
-      }`} />
-
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -201,13 +235,12 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
                 {isEdit ? 'Editar Aluno' : 'Novo Aluno'}
               </h1>
               <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                {isEdit ? 'Atualize as informações' : 'Cadastre um novo aluno'}
+                Passo {currentStep} de 3
               </p>
             </div>
           </div>
 
-          {/* Step Indicator */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {steps.map((step) => {
                const isActive = currentStep === step.id;
                const isCompleted = currentStep > step.id;
@@ -215,7 +248,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
                  <div key={step.id} className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                        isActive 
-                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' 
+                        ? 'bg-primary-500 text-white shadow-lg' 
                         : (isCompleted ? 'bg-emerald-500 text-white' : (darkMode ? 'bg-white/10 text-slate-500' : 'bg-gray-200 text-gray-500'))
                     }`}>
                        {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : step.id}
@@ -227,226 +260,213 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-           {/* Sidebar Navigation */}
-           <div className="lg:col-span-3 flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-              {steps.map((step) => {
-                 const Icon = step.icon;
-                 const isActive = currentStep === step.id;
-                 return (
-                    <button
-                       key={step.id}
-                       onClick={() => setCurrentStep(step.id)}
-                       className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium transition-all min-w-[160px] lg:min-w-0 ${
-                          isActive
-                          ? (darkMode ? 'bg-white/10 border-primary-500/50 text-primary-400' : 'bg-white border-primary-200 text-primary-600 shadow-sm')
-                          : (darkMode ? 'bg-white/5 border-transparent text-slate-500 hover:bg-white/10' : 'bg-transparent border-transparent text-slate-500 hover:bg-gray-50')
-                       }`}
-                    >
-                       <Icon className={`w-5 h-5 ${isActive ? 'text-primary-500' : 'opacity-50'}`} />
-                       <span>{step.title}</span>
-                    </button>
-                 )
-              })}
-           </div>
-
-           {/* Form Area */}
-           <div className={`lg:col-span-9 rounded-3xl border p-6 md:p-8 transition-all ${
-              darkMode ? 'bg-slate-900/50 border-white/5' : 'bg-white border-gray-100 shadow-xl shadow-slate-200/50'
-           }`}>
+        <div className={`rounded-3xl border p-6 md:p-8 transition-all ${
+           darkMode ? 'bg-slate-900/50 border-white/5' : 'bg-white border-gray-100 shadow-xl shadow-slate-200/50'
+        }`}>
               
-              {/* STEP 1: Basic Data */}
-              {currentStep === 1 && (
-                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <label className={labelClass}>Nome Completo *</label>
-                        <div className="relative">
-                          <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
-                          <input
-                            type="text"
-                            value={formData.name}
-                            onChange={(e) => handleInputChange('name', e.target.value)}
-                            className={`${inputClass} pl-10 ${errors.name ? 'border-red-500' : ''}`}
-                            placeholder="Digite o nome completo"
-                          />
-                        </div>
-                        {errors.name && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3"/>{errors.name}</p>}
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Email *</label>
-                        <div className="relative">
-                          <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
-                          <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            className={`${inputClass} pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                            placeholder="email@exemplo.com"
-                          />
-                        </div>
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Telefone *</label>
-                        <div className="relative">
-                          <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
-                          <input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className={`${inputClass} pl-10 ${errors.phone ? 'border-red-500' : ''}`}
-                            placeholder="(11) 99999-9999"
-                          />
-                        </div>
-                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Data de Nascimento *</label>
-                        <input
-                            type="date"
-                            value={formData.birthDate}
-                            onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                            className={`${inputClass} ${errors.birthDate ? 'border-red-500' : ''}`}
-                        />
-                        {errors.birthDate && <p className="text-red-500 text-xs mt-1">{errors.birthDate}</p>}
-                      </div>
-                    </div>
-                 </div>
-              )}
-
-              {/* STEP 2: Contact & Plan */}
-              {currentStep === 2 && (
-                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className={labelClass}>Contato de Emergência *</label>
-                        <input
-                            type="text"
-                            value={formData.emergencyContact}
-                            onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                            className={`${inputClass} ${errors.emergencyContact ? 'border-red-500' : ''}`}
-                            placeholder="Nome do contato"
-                        />
-                        {errors.emergencyContact && <p className="text-red-500 text-xs mt-1">{errors.emergencyContact}</p>}
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Telefone de Emergência *</label>
-                        <input
-                            type="tel"
-                            value={formData.emergencyPhone}
-                            onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                            className={`${inputClass} ${errors.emergencyPhone ? 'border-red-500' : ''}`}
-                            placeholder="(11) 99999-9999"
-                        />
-                        {errors.emergencyPhone && <p className="text-red-500 text-xs mt-1">{errors.emergencyPhone}</p>}
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className={labelClass}>Endereço</label>
-                        <div className="relative">
-                          <MapPin className={`absolute left-4 top-3 w-4 h-4 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
-                          <textarea
-                              value={formData.address}
-                              onChange={(e) => handleInputChange('address', e.target.value)}
-                              rows={2}
-                              className={`${inputClass} pl-10`}
-                              placeholder="Endereço completo (opcional)"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Plano Escolhido</label>
-                        <select
-                            value={formData.plan}
-                            onChange={(e) => handleInputChange('plan', e.target.value)}
-                            className={inputClass}
-                        >
-                          {planOptions.map((plan) => (
-                              <option key={plan} value={plan}>{plan}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className={labelClass}>Status</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => handleInputChange('status', e.target.value as any)}
-                            className={inputClass}
-                        >
-                          <option value="Ativo">Ativo</option>
-                          <option value="Inativo">Inativo</option>
-                          <option value="Suspenso">Suspenso</option>
-                        </select>
-                      </div>
-                    </div>
-                 </div>
-              )}
-
-              {/* STEP 3: Extra Info */}
-              {currentStep === 3 && (
-                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div>
-                      <label className={labelClass}>Histórico Médico</label>
-                      <textarea
-                          value={formData.medicalHistory}
-                          onChange={(e) => handleInputChange('medicalHistory', e.target.value)}
-                          rows={4}
-                          className={inputClass}
-                          placeholder="Condições médicas, lesões, cirurgias, medicamentos, restrições... (opcional)"
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>Objetivos com o Pilates</label>
-                      <textarea
-                          value={formData.objectives}
-                          onChange={(e) => handleInputChange('objectives', e.target.value)}
-                          rows={4}
-                          className={inputClass}
-                          placeholder="Fortalecimento, flexibilidade, reabilitação, condicionamento físico... (opcional)"
-                      />
-                    </div>
-                 </div>
-              )}
-
-              {/* Footer Actions */}
-              <div className={`mt-8 pt-6 border-t flex justify-between items-center ${
-                 darkMode ? 'border-white/10' : 'border-gray-100'
-              }`}>
-                 <button
-                    onClick={currentStep === 1 ? () => navigate('/students') : handlePrev}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                       darkMode ? 'text-slate-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-800'
-                    }`}
-                 >
-                    {currentStep === 1 ? 'Cancelar' : 'Voltar'}
-                 </button>
-
-                 {currentStep < 3 ? (
-                    <button
-                       onClick={handleNext}
-                       className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary-500/20 flex items-center gap-2"
-                    >
-                       Próximo <ChevronRight className="w-4 h-4" />
-                    </button>
-                 ) : (
-                    <button
-                       onClick={handleSubmit}
-                       className="px-8 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2"
-                    >
-                       <Save className="w-4 h-4" /> {isEdit ? 'Atualizar' : 'Salvar Aluno'}
-                    </button>
-                 )}
+          {/* STEP 1: Basic Data */}
+          {currentStep === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h3 className="text-lg font-bold mb-4">Informações Pessoais</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Nome Completo *</label>
+                    <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className={`${inputClass} ${errors.name ? 'border-red-500' : ''}`} placeholder="Digite o nome completo" />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                  </div>
+                  <div>
+                    <label className={labelClass}>Email *</label>
+                    <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={inputClass} placeholder="email@exemplo.com" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Telefone *</label>
+                    <input type="tel" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={inputClass} placeholder="(11) 99999-9999" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Data de Nascimento *</label>
+                    <input type="date" value={formData.birthDate} onChange={(e) => handleInputChange('birthDate', e.target.value)} className={inputClass} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Endereço</label>
+                    <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className={inputClass} placeholder="Endereço completo" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Contato de Emergência</label>
+                    <input type="text" value={formData.emergencyContact} onChange={(e) => handleInputChange('emergencyContact', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Telefone Emergência</label>
+                    <input type="tel" value={formData.emergencyPhone} onChange={(e) => handleInputChange('emergencyPhone', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
               </div>
+          )}
 
-           </div>
+          {/* STEP 2: Anamnese & Medical */}
+          {currentStep === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <HeartPulse className="w-5 h-5 text-red-500" /> Histórico Médico
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Questionário de Saúde (PAR-Q)</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                      {[
+                        { key: 'heartCondition', label: 'Problema Cardíaco' },
+                        { key: 'hypertension', label: 'Hipertensão Arterial' },
+                        { key: 'diabetes', label: 'Diabetes' },
+                        { key: 'boneJointProblem', label: 'Problema Ósseo/Articular' },
+                        { key: 'dizziness', label: 'Tonturas ou Desmaios' }
+                      ].map((item) => (
+                        <label key={item.key} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                          formData.medical[item.key as keyof typeof formData.medical] 
+                            ? (darkMode ? 'bg-red-500/10 border-red-500/50' : 'bg-red-50 border-red-200') 
+                            : (darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200')
+                        }`}>
+                          <input 
+                            type="checkbox" 
+                            checked={formData.medical[item.key as keyof typeof formData.medical] as boolean}
+                            onChange={(e) => handleMedicalChange(item.key, e.target.checked)}
+                            className="w-5 h-5 accent-red-500"
+                          />
+                          <span className="text-sm font-medium">{item.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Alergias</label>
+                    <textarea rows={2} value={formData.medical.allergies} onChange={(e) => handleMedicalChange('allergies', e.target.value)} className={inputClass} placeholder="Lista de alergias..." />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Cirurgias Prévias</label>
+                    <textarea rows={2} value={formData.medical.surgeries} onChange={(e) => handleMedicalChange('surgeries', e.target.value)} className={inputClass} placeholder="Procedimentos cirúrgicos..." />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Medicamentos em Uso</label>
+                    <textarea rows={2} value={formData.medical.medications} onChange={(e) => handleMedicalChange('medications', e.target.value)} className={inputClass} placeholder="Medicamentos contínuos..." />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Restrições Médicas</label>
+                    <textarea rows={2} value={formData.medical.restrictions} onChange={(e) => handleMedicalChange('restrictions', e.target.value)} className={inputClass} placeholder="Limitações de movimento..." />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>Objetivos com o Pilates</label>
+                    <textarea rows={3} value={formData.objectives} onChange={(e) => handleInputChange('objectives', e.target.value)} className={inputClass} placeholder="Ex: Melhora da postura, alívio de dores..." />
+                  </div>
+                </div>
+              </div>
+          )}
+
+          {/* STEP 3: Documents & Plan */}
+          {currentStep === 3 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h3 className="text-lg font-bold mb-4">Plano & Documentação</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className={labelClass}>Plano Contratado</label>
+                    <select value={formData.plan} onChange={(e) => handleInputChange('plan', e.target.value)} className={inputClass}>
+                      <option>Mensal - 4 aulas</option>
+                      <option>Mensal - 8 aulas</option>
+                      <option>Mensal - 12 aulas</option>
+                      <option>Trimestral</option>
+                      <option>Semestral</option>
+                      <option>Anual</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Status da Matrícula</label>
+                    <select value={formData.status} onChange={(e) => handleInputChange('status', e.target.value as any)} className={inputClass}>
+                      <option value="Ativo">Ativo</option>
+                      <option value="Inativo">Inativo</option>
+                      <option value="Suspenso">Suspenso</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Documentos do Aluno</label>
+                  <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
+                    darkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  }`}>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className={`p-3 rounded-full ${darkMode ? 'bg-primary-500/20 text-primary-400' : 'bg-primary-50 text-primary-600'}`}>
+                        <UploadCloud className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Clique para adicionar documentos</p>
+                        <p className="text-xs opacity-60">Atestados, contratos, termos de responsabilidade</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={handleAddDocument}
+                        className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-lg hover:bg-primary-700"
+                      >
+                        Selecionar Arquivo
+                      </button>
+                    </div>
+                  </div>
+
+                  {formData.documents.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {formData.documents.map((doc, index) => (
+                        <div key={index} className={`flex items-center justify-between p-3 rounded-xl border ${darkMode ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'}`}>
+                          <div className="flex items-center gap-3">
+                            <File className="w-5 h-5 text-blue-500" />
+                            <div>
+                              <p className="text-sm font-bold">{doc.name}</p>
+                              <p className="text-xs opacity-60">{doc.size} • {doc.type}</p>
+                            </div>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => handleRemoveDocument(index)} 
+                            className="p-2 hover:bg-red-500/10 rounded-lg text-red-500"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+          )}
+
+          {/* Footer Actions */}
+          <div className={`mt-8 pt-6 border-t flex justify-between items-center ${
+              darkMode ? 'border-white/10' : 'border-gray-100'
+          }`}>
+              <button
+                onClick={currentStep === 1 ? () => navigate('/students') : handlePrev}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    darkMode ? 'text-slate-400 hover:bg-white/10 hover:text-white' : 'text-slate-500 hover:bg-gray-100 hover:text-slate-800'
+                }`}
+              >
+                {currentStep === 1 ? 'Cancelar' : 'Voltar'}
+              </button>
+
+              {currentStep < 3 ? (
+                <button
+                    onClick={handleNext}
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary-500/20 flex items-center gap-2"
+                >
+                    Próximo <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                    onClick={handleSubmit}
+                    className="px-8 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                >
+                    <Save className="w-4 h-4" /> Salvar Cadastro
+                </button>
+              )}
+          </div>
+
         </div>
       </div>
     </main>

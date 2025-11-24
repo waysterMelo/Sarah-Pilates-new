@@ -15,6 +15,7 @@ interface AnatomicalDiagramProps {
   onMarkerAdd?: (marker: Omit<AnatomicalMarker, 'id'>) => void;
   onMarkerRemove?: (markerId: string) => void;
   readOnly?: boolean;
+  darkMode?: boolean;
 }
 
 const BODY_PARTS = {
@@ -41,7 +42,8 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
   markers,
   onMarkerAdd,
   onMarkerRemove,
-  readOnly = false
+  readOnly = false,
+  darkMode = false
 }) => {
   const [hoveredBodyPart, setHoveredBodyPart] = useState<string | null>(null);
   const [showMarkerForm, setShowMarkerForm] = useState(false);
@@ -133,9 +135,9 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 items-start">
+    <div className="flex flex-col md:flex-row gap-8 items-start w-full">
       <div className="relative flex-shrink-0 mx-auto">
-        <div className="bg-white p-4 rounded-3xl border shadow-sm relative">
+        <div className={`p-4 rounded-3xl border shadow-sm relative ${darkMode ? 'bg-slate-800 border-white/5' : 'bg-white'}`}>
           <svg
             ref={svgRef}
             viewBox="0 0 500 700"
@@ -208,11 +210,11 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
       {/* Panel de Detalhes/Formulário */}
       <div className="flex-1 w-full">
         {showMarkerForm && !readOnly ? (
-          <div className="bg-white p-6 rounded-2xl border shadow-lg animate-in fade-in slide-in-from-bottom-4">
-            <h3 className="font-bold text-gray-800 mb-4">Adicionar Observação</h3>
+          <div className={`p-6 rounded-2xl border shadow-lg animate-in fade-in slide-in-from-bottom-4 ${darkMode ? 'bg-slate-800 border-white/5 text-white' : 'bg-white text-gray-900'}`}>
+            <h3 className={`font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Adicionar Observação</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Tipo</label>
                 <div className="flex gap-2">
                   {[
                     { id: 'pain', label: 'Dor', color: 'bg-red-100 text-red-700 border-red-200' },
@@ -223,7 +225,7 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
                       key={type.id}
                       type="button"
                       onClick={() => setMarkerType(type.id as any)}
-                      className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${markerType === type.id ? type.color + ' ring-2 ring-offset-1' : 'bg-white border-gray-200 text-gray-600'}`}
+                      className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${markerType === type.id ? type.color + ' ring-2 ring-offset-1' : (darkMode ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-white border-gray-200 text-gray-600')}`}
                     >
                       {type.label}
                     </button>
@@ -231,11 +233,11 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Descrição</label>
                 <textarea
                   value={markerDescription}
                   onChange={(e) => setMarkerDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 ${darkMode ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
                   rows={3}
                   placeholder="Descreva a condição..."
                 />
@@ -243,7 +245,7 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
               <div className="flex gap-2 pt-2">
                 <button 
                   onClick={() => setShowMarkerForm(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
+                  className={`flex-1 px-4 py-2 rounded-xl ${darkMode ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                 >
                   Cancelar
                 </button>
@@ -258,14 +260,14 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800">Registros Anatômicos</h3>
-              <span className="text-xs font-medium bg-gray-200 px-2 py-1 rounded-full text-gray-600">{markers.length}</span>
+          <div className={`rounded-2xl border shadow-sm overflow-hidden ${darkMode ? 'bg-slate-800 border-white/5' : 'bg-white'}`}>
+            <div className={`p-4 border-b flex justify-between items-center ${darkMode ? 'bg-slate-700/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+              <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Registros Anatômicos</h3>
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${darkMode ? 'bg-white/10 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>{markers.length}</span>
             </div>
             <div className="max-h-[400px] overflow-y-auto p-2">
               {markers.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div className={`text-center py-8 text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                   <p>Nenhum registro adicionado.</p>
                   {!readOnly && <p>Clique no corpo para adicionar.</p>}
                 </div>
@@ -274,7 +276,11 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
                   {markers.map(marker => (
                     <div 
                       key={marker.id}
-                      className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedMarkerId === marker.id ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300' : 'bg-white border-gray-100 hover:border-gray-300'}`}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                        selectedMarkerId === marker.id 
+                          ? (darkMode ? 'bg-blue-900/30 border-blue-500/50 ring-1 ring-blue-500/30' : 'bg-blue-50 border-blue-300 ring-1 ring-blue-300')
+                          : (darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-white border-gray-100 hover:border-gray-300')
+                      }`}
                       onClick={() => setSelectedMarkerId(marker.id)}
                     >
                       <div className="flex justify-between items-start">
@@ -283,8 +289,8 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
                             {getMarkerIcon(marker.type)}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-gray-800">{marker.bodyPart}</p>
-                            <p className="text-xs text-gray-600 mt-0.5">{marker.description}</p>
+                            <p className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{marker.bodyPart}</p>
+                            <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{marker.description}</p>
                           </div>
                         </div>
                         {!readOnly && onMarkerRemove && (

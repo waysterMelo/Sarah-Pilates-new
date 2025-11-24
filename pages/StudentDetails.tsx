@@ -15,7 +15,11 @@ import {
   Edit2,
   CheckCircle2,
   AlertCircle,
-  Clock
+  Clock,
+  Camera,
+  File,
+  Cake,
+  Trash2
 } from 'lucide-react';
 
 interface StudentDetailsProps {
@@ -25,7 +29,7 @@ interface StudentDetailsProps {
 const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'financial' | 'medical'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'medical' | 'photos' | 'documents'>('overview');
 
   // Mock fetch based on ID (Hardcoded for demo)
   const student = {
@@ -33,23 +37,36 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
     name: 'Isabella Costa',
     email: 'isa.costa@email.com',
     phone: '(11) 99876-5432',
+    birthDate: '1995-12-15', // Month matches current month for demo
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
     plan: 'Platinum Membership',
-    status: 'Active' as const, // Type assertion for strict typing if needed
+    status: 'Ativo' as const,
     joinDate: '12 Jan, 2023',
-    age: 28,
-    height: '1.68m',
-    weight: '62kg',
-    objective: 'Fortalecimento Core & Flexibilidade',
     address: 'Rua Oscar Freire, 1234 - Jardins, SP',
-    notes: 'Aluno prefere aulas pela manhã. Sensibilidade no joelho esquerdo.',
+    medical: {
+        allergies: 'Nenhuma',
+        surgeries: 'Cesárea (2020)',
+        restrictions: 'Evitar impacto joelho direito',
+        medications: 'Vitamina D',
+        conditions: ['Condromalácia Patelar Grau 1']
+    },
+    documents: [
+        { name: 'Atestado_Cardiologista.pdf', date: '10/01/2024', type: 'PDF' },
+        { name: 'Contrato_Assinado.pdf', date: '12/01/2023', type: 'PDF' },
+        { name: 'Termo_Responsabilidade.pdf', date: '12/01/2023', type: 'PDF' }
+    ],
+    progressPhotos: [
+        { date: 'Jan 2024', urlBefore: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=300&q=80', urlAfter: 'https://images.unsplash.com/photo-1574680096141-1cddd32e04ca?auto=format&fit=crop&w=300&q=80' }
+    ]
   };
+
+  const isBirthdayMonth = new Date().getMonth() === new Date(student.birthDate).getMonth();
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },
-    { id: 'history', label: 'Histórico de Aulas', icon: Calendar },
-    { id: 'financial', label: 'Financeiro', icon: CreditCard },
     { id: 'medical', label: 'Ficha Médica', icon: FileText },
+    { id: 'photos', label: 'Fotos Progresso', icon: Camera },
+    { id: 'documents', label: 'Documentos', icon: File },
   ];
 
   return (
@@ -66,20 +83,10 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar para lista
+          Voltar
         </button>
 
         <div className="flex items-center gap-2">
-          <button className={`p-2 rounded-xl border transition-colors ${
-            darkMode ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-gray-200 hover:bg-gray-50'
-          }`}>
-            <Share2 className="w-4 h-4" />
-          </button>
-          <button className={`p-2 rounded-xl border transition-colors ${
-            darkMode ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-gray-200 hover:bg-gray-50'
-          }`}>
-            <Download className="w-4 h-4" />
-          </button>
           <button 
             onClick={() => navigate(`/students/${id}/edit`, { state: { student } })}
             className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-500/20 flex items-center gap-2"
@@ -95,7 +102,6 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
         <div className={`relative overflow-hidden rounded-3xl p-8 mb-8 border ${
           darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100 shadow-lg'
         }`}>
-          {/* Background Blur Effect */}
           <div className={`absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/3 pointer-events-none ${
             darkMode ? 'bg-primary-500' : 'bg-primary-400'
           }`} />
@@ -107,13 +113,23 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
                 alt={student.name} 
                 className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-2xl"
               />
-              <div className="absolute bottom-0 right-0 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-lg border-2 border-white dark:border-slate-800">
-                {student.status}
-              </div>
+              {isBirthdayMonth && (
+                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white p-2 rounded-full shadow-lg animate-bounce" title="Aniversariante do Mês">
+                      <Cake className="w-5 h-5" />
+                  </div>
+              )}
             </div>
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{student.name}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold">{student.name}</h1>
+                {isBirthdayMonth && (
+                    <span className="text-xs font-bold bg-pink-500/10 text-pink-500 border border-pink-500/20 px-2 py-1 rounded-lg">
+                        🎉 Aniversariante
+                    </span>
+                )}
+              </div>
+              
               <div className="flex flex-wrap gap-4 text-sm opacity-70 mb-4">
                 <span className="flex items-center gap-1.5">
                   <Mail className="w-4 h-4" /> {student.email}
@@ -137,33 +153,14 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
                 }`}>
                   {student.plan}
                 </span>
-                <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${
-                  darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                <span className={`px-3 py-1 rounded-lg text-xs font-medium border flex items-center gap-1 ${
+                  student.status === 'Ativo' 
+                    ? (darkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600')
+                    : 'bg-gray-100 text-gray-500'
                 }`}>
-                  Desde {student.joinDate}
+                  <div className={`w-1.5 h-1.5 rounded-full ${student.status === 'Ativo' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                  {student.status}
                 </span>
-              </div>
-            </div>
-            
-            {/* Quick Bio Stats */}
-            <div className={`grid grid-cols-2 gap-4 p-4 rounded-2xl border min-w-[200px] ${
-               darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'
-            }`}>
-              <div>
-                <div className="text-xs opacity-50 uppercase tracking-wider">Idade</div>
-                <div className="text-lg font-bold">{student.age} anos</div>
-              </div>
-              <div>
-                <div className="text-xs opacity-50 uppercase tracking-wider">Objetivo</div>
-                <div className="text-xs font-bold truncate w-24">{student.objective}</div>
-              </div>
-              <div>
-                <div className="text-xs opacity-50 uppercase tracking-wider">Altura</div>
-                <div className="text-lg font-bold">{student.height}</div>
-              </div>
-              <div>
-                <div className="text-xs opacity-50 uppercase tracking-wider">Peso</div>
-                <div className="text-lg font-bold">{student.weight}</div>
               </div>
             </div>
           </div>
@@ -217,68 +214,126 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
                         <p className="text-sm opacity-60">08:00 - 09:00 • Instrutora Ana</p>
                      </div>
                   </div>
-                  <button className={`w-full py-2 rounded-xl font-medium text-sm border ${
-                     darkMode ? 'border-white/10 hover:bg-white/5' : 'border-gray-200 hover:bg-gray-50'
-                  }`}>
-                    Gerenciar Agendamento
-                  </button>
                 </div>
               </div>
 
-              {/* Notes Card */}
+              {/* Medical Alert Card */}
               <div className={`md:col-span-2 p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-orange-500" />
-                    Observações Importantes
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    Pontos de Atenção
                   </h3>
-                  <button className="text-xs text-primary-500 font-medium hover:underline">Adicionar nota</button>
                 </div>
-                <div className={`p-4 rounded-xl border-l-4 border-orange-400 ${darkMode ? 'bg-orange-500/5' : 'bg-orange-50'}`}>
-                   <p className="text-sm italic">"{student.notes}"</p>
-                   <div className="mt-2 text-xs opacity-60 text-right">- Atualizado por Dr. Marcos em 10/01/2024</div>
-                </div>
-              </div>
-
-              {/* Stats Graph (Mock Visual) */}
-              <div className={`col-span-1 md:col-span-3 p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-lg">Evolução de Frequência</h3>
-                  <select className={`text-sm rounded-lg p-2 border ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-                    <option>Últimos 6 meses</option>
-                    <option>2023</option>
-                  </select>
-                </div>
-                <div className="h-48 flex items-end justify-between gap-2 px-4">
-                   {[65, 40, 75, 50, 85, 90, 70, 80, 95, 60, 85, 92].map((h, i) => (
-                      <div key={i} className="w-full flex flex-col items-center gap-2 group">
-                         <div 
-                          className={`w-full rounded-t-lg transition-all duration-500 group-hover:opacity-80 ${
-                             darkMode ? 'bg-primary-600' : 'bg-primary-400'
-                          }`} 
-                          style={{ height: `${h}%` }} 
-                         />
-                         <span className="text-xs opacity-50">M{i+1}</span>
-                      </div>
-                   ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`p-4 rounded-xl border-l-4 border-red-400 ${darkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
+                        <p className="text-xs font-bold text-red-500 uppercase mb-1">Restrições</p>
+                        <p className="text-sm">{student.medical.restrictions}</p>
+                    </div>
+                    <div className={`p-4 rounded-xl border-l-4 border-orange-400 ${darkMode ? 'bg-orange-500/5' : 'bg-orange-50'}`}>
+                        <p className="text-xs font-bold text-orange-500 uppercase mb-1">Cirurgias</p>
+                        <p className="text-sm">{student.medical.surgeries}</p>
+                    </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* OTHER TABS PLACEHOLDERS */}
-          {activeTab !== 'overview' && (
-            <div className={`flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed ${
-               darkMode ? 'border-white/10' : 'border-gray-300'
-            }`}>
-               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  darkMode ? 'bg-white/5' : 'bg-gray-100'
-               }`}>
-                  <MoreHorizontal className="w-8 h-8 opacity-30" />
-               </div>
-               <h3 className="text-lg font-bold mb-1">Conteúdo em desenvolvimento</h3>
-               <p className="text-sm opacity-50">O módulo {tabs.find(t => t.id === activeTab)?.label} será implementado em breve.</p>
-            </div>
+          {/* MEDICAL TAB */}
+          {activeTab === 'medical' && (
+              <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
+                  <h3 className="text-lg font-bold mb-6">Ficha Médica Completa</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      <div>
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Alergias</span>
+                          <p className="text-base font-medium">{student.medical.allergies}</p>
+                      </div>
+                      <div>
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Medicamentos em Uso</span>
+                          <p className="text-base font-medium">{student.medical.medications}</p>
+                      </div>
+                      <div>
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Histórico Cirúrgico</span>
+                          <p className="text-base font-medium">{student.medical.surgeries}</p>
+                      </div>
+                      <div>
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Patologias / Condições</span>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                              {student.medical.conditions.map(cond => (
+                                  <span key={cond} className={`px-3 py-1 rounded-full text-sm font-medium border ${darkMode ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-100 text-red-600'}`}>
+                                      {cond}
+                                  </span>
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* PHOTOS TAB */}
+          {activeTab === 'photos' && (
+              <div className="space-y-8">
+                  {student.progressPhotos.map((photo, index) => (
+                      <div key={index} className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
+                          <div className="flex justify-between items-center mb-6">
+                              <h3 className="text-lg font-bold">Comparativo: {photo.date}</h3>
+                              <button className="text-sm text-primary-500 font-medium hover:underline">Ver tela cheia</button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="relative group">
+                                  <span className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm font-bold backdrop-blur-sm">Antes</span>
+                                  <img src={photo.urlBefore} alt="Antes" className="w-full h-64 object-cover rounded-2xl shadow-md transition-transform group-hover:scale-[1.02]" />
+                              </div>
+                              <div className="relative group">
+                                  <span className="absolute top-4 left-4 bg-primary-600/80 text-white px-3 py-1 rounded-lg text-sm font-bold backdrop-blur-sm">Depois</span>
+                                  <img src={photo.urlAfter} alt="Depois" className="w-full h-64 object-cover rounded-2xl shadow-md transition-transform group-hover:scale-[1.02]" />
+                              </div>
+                          </div>
+                      </div>
+                  ))}
+                  <button className={`w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 font-bold transition-all ${
+                      darkMode ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-gray-300 hover:bg-gray-50 text-gray-500'
+                  }`}>
+                      <Camera className="w-5 h-5" /> Adicionar Nova Comparação
+                  </button>
+              </div>
+          )}
+
+          {/* DOCUMENTS TAB */}
+          {activeTab === 'documents' && (
+              <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-bold">Arquivos e Contratos</h3>
+                      <button className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 flex items-center gap-2">
+                          <Download className="w-4 h-4" /> Upload
+                      </button>
+                  </div>
+                  <div className="space-y-3">
+                      {student.documents.map((doc, i) => (
+                          <div key={i} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                              darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
+                          }`}>
+                              <div className="flex items-center gap-4">
+                                  <div className="p-3 bg-red-100 text-red-600 rounded-xl">
+                                      <FileText className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                      <p className="font-bold text-sm">{doc.name}</p>
+                                      <p className="text-xs opacity-60">Adicionado em {doc.date}</p>
+                                  </div>
+                              </div>
+                              <div className="flex gap-2">
+                                  <button className={`p-2 rounded-lg ${darkMode ? 'hover:bg-white/10' : 'hover:bg-gray-200'}`} title="Baixar">
+                                      <Download className="w-4 h-4" />
+                                  </button>
+                                  <button className={`p-2 rounded-lg text-red-500 ${darkMode ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`} title="Excluir">
+                                      <Trash2 className="w-4 h-4" />
+                                  </button>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
           )}
 
         </div>
