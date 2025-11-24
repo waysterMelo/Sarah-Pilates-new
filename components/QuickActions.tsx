@@ -38,20 +38,6 @@ const QuickActions: React.FC<QuickActionsProps> = ({ darkMode }) => {
       color: 'text-emerald-500',
       bg: 'bg-emerald-500/10',
       action: () => navigate('/instructors/new')
-    },
-    {
-      label: 'Registrar Pagamento',
-      icon: CreditCard,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/10',
-      action: () => console.log('Pagamento')
-    },
-    {
-      label: 'Confirmar Presença',
-      icon: CheckCircle2,
-      color: 'text-rose-500',
-      bg: 'bg-rose-500/10',
-      action: () => console.log('Presença')
     }
   ];
 

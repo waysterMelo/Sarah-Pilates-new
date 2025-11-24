@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ darkMode }) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { icon: LayoutGrid, path: '/', label: 'Hub' },
+    { icon: LayoutGrid, path: '/dashboard', label: 'Hub' },
     { icon: CalendarHeart, path: '/schedule', label: 'Flow' },
     { icon: Users, path: '/students', label: 'Alunos' },
     { icon: HeartPulse, path: '/physical', label: 'Avaliação' },
@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ darkMode }) => {
         : 'bg-white border-slate-100'
     }`}>
       <div className="flex flex-col items-center w-full">
-        <div className="mb-12 relative group cursor-pointer" onClick={() => navigate('/')}>
+        <div className="mb-12 relative group cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-primary-500/30 transition-transform duration-300 group-hover:scale-110">
              <span className="text-white font-bold text-2xl">P</span>
           </div>

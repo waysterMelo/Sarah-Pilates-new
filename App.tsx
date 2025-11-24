@@ -48,12 +48,17 @@ const App = () => {
         {/* Rota de Login sem o Layout (Sidebar) */}
         <Route path="/login" element={<Login darkMode={darkMode} toggleTheme={toggleTheme} />} />
 
-        {/* Rotas Protegidas com Layout */}
-        <Route path="/" element={
+        {/* Rota do Dashboard com Layout */}
+        <Route path="/dashboard" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Dashboard darkMode={darkMode} toggleTheme={toggleTheme} />
           </Layout>
         } />
+
+        {/* Redireciona a rota raiz para /login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        {/* Mantém a rota para /schedule, mas agora ela segue a nova lógica */}
         <Route path="/schedule" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <ScheduleManagement darkMode={darkMode} />
