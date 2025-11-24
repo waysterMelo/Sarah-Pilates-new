@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -38,7 +38,21 @@ const Layout = ({ children, darkMode, toggleTheme }: LayoutProps) => {
 };
 
 const App = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  // Inicializa o estado lendo do localStorage, se disponível
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+
+  // Salva a preferência sempre que o tema mudar
+  useEffect(() => {
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const toggleTheme = () => setDarkMode(prev => !prev);
 
