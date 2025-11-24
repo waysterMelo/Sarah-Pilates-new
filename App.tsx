@@ -45,15 +45,17 @@ const App = () => {
   return (
     <HashRouter>
       <Routes>
-        {/* Rota de Login sem o Layout (Sidebar) */}
-        <Route path="/login" element={<Login darkMode={darkMode} toggleTheme={toggleTheme} />} />
+        {/* Rota Raiz agora é o Login */}
+        <Route path="/" element={<Login darkMode={darkMode} toggleTheme={toggleTheme} />} />
 
-        {/* Rotas Protegidas com Layout */}
-        <Route path="/" element={
+        {/* Rota Dashboard Principal */}
+        <Route path="/dashboard" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Dashboard darkMode={darkMode} toggleTheme={toggleTheme} />
           </Layout>
         } />
+
+        {/* Demais Rotas Protegidas */}
         <Route path="/schedule" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <ScheduleManagement darkMode={darkMode} />
@@ -104,7 +106,6 @@ const App = () => {
             <InstructorDetails darkMode={darkMode} />
           </Layout>
         } />
-        {/* Rotas para Módulo Física */}
         <Route path="/physical" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <PhysicalEvaluation darkMode={darkMode} />
@@ -115,13 +116,11 @@ const App = () => {
             <PhysicalEvaluationForm darkMode={darkMode} />
           </Layout>
         } />
-        {/* Rotas para Evolução */}
         <Route path="/records" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <EvolutionRecords darkMode={darkMode} />
           </Layout>
         } />
-        {/* Rotas para Aulas */}
         <Route path="/classes" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Classes darkMode={darkMode} />
@@ -138,8 +137,8 @@ const App = () => {
           </Layout>
         } />
         
-        {/* Redireciona qualquer rota desconhecida para o Login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Redireciona qualquer rota desconhecida para a raiz (Login) */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   );
