@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import ScheduleManagement from './pages/ScheduleManagement';
@@ -38,13 +37,12 @@ const Layout = ({ children, darkMode, toggleTheme }: LayoutProps) => {
 };
 
 const App = () => {
-  // Inicializa o estado lendo do localStorage, se disponível
+  // Inicializa o estado lendo do localStorage
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
 
-  // Salva a preferência sempre que o tema mudar
   useEffect(() => {
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
     if (darkMode) {
@@ -57,19 +55,19 @@ const App = () => {
   const toggleTheme = () => setDarkMode(prev => !prev);
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
-        {/* Rota Raiz agora é o Login */}
-        <Route path="/" element={<Login darkMode={darkMode} toggleTheme={toggleTheme} />} />
+        {/* Rota Raiz é o Login */}
+        <Route path="/" element={<Login darkMode={darkMode} />} />
 
-        {/* Rota Dashboard Principal */}
+        {/* Dashboard Principal */}
         <Route path="/dashboard" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <Dashboard darkMode={darkMode} toggleTheme={toggleTheme} />
           </Layout>
         } />
 
-        {/* Demais Rotas Protegidas */}
+        {/* Rotas Protegidas */}
         <Route path="/schedule" element={
           <Layout darkMode={darkMode} toggleTheme={toggleTheme}>
             <ScheduleManagement darkMode={darkMode} />
@@ -151,10 +149,10 @@ const App = () => {
           </Layout>
         } />
         
-        {/* Redireciona qualquer rota desconhecida para a raiz (Login) */}
+        {/* Redireciona 404 para Login */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 
