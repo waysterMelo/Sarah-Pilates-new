@@ -1,6 +1,6 @@
 package com.sarahpilates.security.jwt;
 
-import com.sarahpilates.domain.instructor.Instructor;
+import com.sarahpilates.domain.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class TokenService {
     public String generateToken(Authentication authentication) {
         log.info("Attempting to generate token...");
         try {
-            Instructor principal = (Instructor) authentication.getPrincipal();
+            User principal = (User) authentication.getPrincipal();
             Date now = new Date();
             Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -48,7 +48,7 @@ public class TokenService {
                     .setExpiration(expiryDate)
                     .signWith(getSecretKey())
                     .compact();
-            
+
             log.info("Token generated successfully.");
             return token;
         } catch (Exception e) {

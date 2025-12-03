@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useMemo, useEffect } from 'react';
+import React, { createContext, useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 // Define User and AuthContext types
@@ -8,12 +8,19 @@ interface User {
   role: string;
 }
 
+interface RegisterRequestData {
+  name: string;
+  email: string;
+  password: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   loading: boolean;
   signIn: (data: any) => Promise<void>;
   signOut: () => void;
+  register: (data: RegisterRequestData) => Promise<void>;
 }
 
 // Create the Context
@@ -72,7 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoading(false);
   }, []);
 
-  const signIn = async ({ email, password }) => {
+  const signIn = useCallback(async ({ email, password }) => {
     setLoading(true);
     try {
       const response = await api.post('/api/auth/login', { email, password });
@@ -92,14 +99,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const signOut = () => {
+  const register = useCallback(async (data: RegisterRequestData) => {
+    setLoading(true);
+    try {
+      await api.post('/api/auth/register', data);
+      // No token or user data returned for registration, just success
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error; // Re-throw for UI to handle
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signOut = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('authToken');
     delete api.defaults.headers.common['Authorization'];
-  };
+  }, []);
 
   const isAuthenticated = !!token;
 
@@ -108,8 +128,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     loading,
     signIn,
-    signOut
-  }), [isAuthenticated, user, loading]);
+    signOut,
+    register
+  }), [isAuthenticated, user, loading, signIn, signOut, register]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -126,3 +147,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

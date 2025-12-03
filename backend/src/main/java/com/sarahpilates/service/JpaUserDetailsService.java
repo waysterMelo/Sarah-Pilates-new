@@ -1,6 +1,6 @@
 package com.sarahpilates.service;
 
-import com.sarahpilates.repository.InstructorRepository;
+import com.sarahpilates.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JpaUserDetailsService implements UserDetailsService {
 
-    private final InstructorRepository instructorRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return instructorRepository.findByEmail(username)
+        return userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 }

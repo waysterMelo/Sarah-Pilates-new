@@ -12,10 +12,12 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Login: React.FC = () => {
   const { darkMode } = useTheme();
   const { signIn, loading } = useAuth();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -188,8 +190,8 @@ const Login: React.FC = () => {
 
               <p className={`text-center text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                 Ainda não tem uma conta?{' '}
-                <button type="button" className="font-bold text-primary-500 hover:text-primary-600 transition-colors">
-                  Fale com o administrador
+                <button type="button" onClick={() => navigate('/register')} className="font-bold text-primary-500 hover:text-primary-600 transition-colors">
+                  Cadastre-se
                 </button>
               </p>
             </form>

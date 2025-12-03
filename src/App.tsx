@@ -19,6 +19,7 @@ import Classes from '../pages/Classes';
 import ClassForm from '../pages/ClassForm';
 import Sidebar from '../components/Sidebar';
 import Login from "../pages/Login";
+import Register from "../pages/Register"; // Import Register component
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -42,6 +43,7 @@ const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+            <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} /> {/* Add Register route */}
 
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
