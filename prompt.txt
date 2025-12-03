@@ -1,27 +1,20 @@
-Message    : You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '4     VALUES (
+2025-12-03T18:51:33.897Z  INFO 1 --- [nio-8080-exec-1] c.s.domain.instructor.Instructor         : !!! DEBUG !!! Hashed password from DB for user admin2@sarahpilates.com: [$2a$10$G3s3xQZg83a9V88pA9aF.eL8J.C.iPq0/61LQUG8TjHAP.QeF2J96]
 
-    5         'Admin User',
+2025-12-03T18:51:34.016Z DEBUG 1 --- [nio-8080-exec-1] o.s.s.a.dao.DaoAuthenticationProvider    : Failed to authenticate since password does not match stored value
 
-    6         'admin@sarahpilates.c' at line 2
+2025-12-03T18:51:34.024Z ERROR 1 --- [nio-8080-exec-1] com.sarahpilates.web.AuthController      : Authentication failed for user: admin2@sarahpilates.com
 
-Location   : db/migration/V6__Add_Test_Login_User.sql (/app/nested:/app/app.jar/!BOOT-INF/classes/!/db/migration/V6__Add_Test_Login_User.sql)
 
-Line       : 1
+org.springframework.security.authentication.BadCredentialsException: Usuário inexistente ou senha inválida
 
-Statement  : INSERT INTO instructors (name, email, password, role, status, hire_date)
+	at org.springframework.security.authentication.dao.DaoAuthenticationProvider.additionalAuthenticationChecks(DaoAuthenticationProvider.java:93) ~[spring-security-core-6.3.0.jar!/:6.3.0]
 
-    4     VALUES (
+	at org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider.authenticate(AbstractUserDetailsAuthenticationProvider.java:147) ~[spring-security-core-6.3.0.jar!/:6.3.0]
 
-    5         'Admin User',
+	at org.springframework.security.authentication.ProviderManager.authenticate(ProviderManager.java:182) ~[spring-security-core-6.3.0.jar!/:6.3.0]
 
-    6         'admin@sarahpilates.com',
+	at com.sarahpilates.web.AuthController.login(AuthController.java:31) ~[!/:0.0.1-SNAPSHOT]
 
-    7         '$2a$10$3z0.nSmi32n3s7lR/GzMzeJ5ZZm6i5z2.H.3T.hYp5Y3iA2pTPoI.', -- senha: '123456'
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source) ~[na:na]
 
-    8         'ROLE_ADMIN',
-
-    9         'ATIVO',
-
-    10         CURDATE()
-
-    11     )
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]

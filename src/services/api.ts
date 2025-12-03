@@ -18,11 +18,9 @@ api.interceptors.response.use(
       // Token is invalid or expired
       localStorage.removeItem('authToken');
       delete api.defaults.headers.common['Authorization'];
-      // Redirect to login page. We do a hard refresh to clear all state.
-      // Adjusted for HashRouter.
-      if (!window.location.hash.includes('/login')) {
-        window.location.href = '/#/login';
-      }
+        if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+        }
     }
     return Promise.reject(error);
   }
