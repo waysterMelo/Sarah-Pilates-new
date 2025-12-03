@@ -1,7 +1,8 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 import Dashboard from '../pages/Dashboard';
 import ScheduleManagement from '../pages/ScheduleManagement';
@@ -23,62 +24,58 @@ interface LayoutProps {
   children?: React.ReactNode;
 }
 
-// Layout agora consome o tema do contexto
 const Layout = ({ children }: LayoutProps) => {
-  const { darkMode } = useTheme(); // Obtenha o darkMode do contexto
+  const { darkMode } = useTheme();
   return (
     <div className={`flex min-h-screen transition-colors duration-500 ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <Sidebar />
       <div className="flex-1 h-screen overflow-y-auto overflow-x-hidden relative">
-        {/* Não precisamos mais clonar elementos, o filho também usará o contexto se precisar */}
         {children}
       </div>
     </div>
   );
 };
 
-// Componente que contém as rotas e a lógica principal
 const AppRoutes = () => {
-    // Se precisar de darkMode ou toggleTheme aqui, use o hook useTheme()
-    // const { darkMode, toggleTheme } = useTheme();
+    const { isAuthenticated } = useAuth();
 
     return (
         <Routes>
-            {/* A página de Login também usará o contexto */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
 
-            {/* Rotas com Layout */}
-            <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-            <Route path="/schedule" element={<Layout><ScheduleManagement /></Layout>} />
-            <Route path="/students" element={<Layout><Students /></Layout>} />
-            <Route path="/students/new" element={<Layout><StudentForm /></Layout>} />
-            <Route path="/students/:id/edit" element={<Layout><StudentForm /></Layout>} />
-            <Route path="/students/:id" element={<Layout><StudentDetails /></Layout>} />
-            <Route path="/instructors" element={<Layout><Instructors /></Layout>} />
-            <Route path="/instructors/new" element={<Layout><InstructorForm /></Layout>} />
-            <Route path="/instructors/:id/edit" element={<Layout><InstructorForm /></Layout>} />
-            <Route path="/instructors/:id" element={<Layout><InstructorDetails /></Layout>} />
-            <Route path="/physical" element={<Layout><PhysicalEvaluation /></Layout>} />
-            <Route path="/physical/new" element={<Layout><PhysicalEvaluationForm /></Layout>} />
-            <Route path="/records" element={<Layout><EvolutionRecords /></Layout>} />
-            <Route path="/classes" element={<Layout><Classes /></Layout>} />
-            <Route path="/classes/new" element={<Layout><ClassForm /></Layout>} />
-            <Route path="/classes/:id/edit" element={<Layout><ClassForm /></Layout>} />
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+            <Route path="/schedule" element={<ProtectedRoute><Layout><ScheduleManagement /></Layout></ProtectedRoute>} />
+            <Route path="/students" element={<ProtectedRoute><Layout><Students /></Layout></ProtectedRoute>} />
+            <Route path="/students/new" element={<ProtectedRoute><Layout><StudentForm /></Layout></ProtectedRoute>} />
+            <Route path="/students/:id/edit" element={<ProtectedRoute><Layout><StudentForm /></Layout></ProtectedRoute>} />
+            <Route path="/students/:id" element={<ProtectedRoute><Layout><StudentDetails /></Layout></ProtectedRoute>} />
+            <Route path="/instructors" element={<ProtectedRoute><Layout><Instructors /></Layout></ProtectedRoute>} />
+            <Route path="/instructors/new" element={<ProtectedRoute><Layout><InstructorForm /></Layout></ProtectedRoute>} />
+            <Route path="/instructors/:id/edit" element={<ProtectedRoute><Layout><InstructorForm /></Layout></ProtectedRoute>} />
+            <Route path="/instructors/:id" element={<ProtectedRoute><Layout><InstructorDetails /></Layout></ProtectedRoute>} />
+            <Route path="/physical" element={<ProtectedRoute><Layout><PhysicalEvaluation /></Layout></ProtectedRoute>} />
+            <Route path="/physical/new" element={<ProtectedRoute><Layout><PhysicalEvaluationForm /></Layout></ProtectedRoute>} />
+            <Route path="/records" element={<ProtectedRoute><Layout><EvolutionRecords /></Layout></ProtectedRoute>} />
+            <Route path="/classes" element={<ProtectedRoute><Layout><Classes /></Layout></ProtectedRoute>} />
+            <Route path="/classes/new" element={<ProtectedRoute><Layout><ClassForm /></Layout></ProtectedRoute>} />
+            <Route path="/classes/:id/edit" element={<ProtectedRoute><Layout><ClassForm /></Layout></ProtectedRoute>} />
 
-            {/* Redirecionamentos */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Redirects */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} /> {/* Or a 404 page */}
         </Routes>
     );
 }
 
-
 const App = () => {
   return (
     <ThemeProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
+      <AuthProvider>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 };

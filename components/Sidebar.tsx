@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { 
   LayoutGrid, 
   CalendarHeart, 
@@ -14,6 +15,7 @@ import {
 
 const Sidebar: React.FC = () => {
   const { darkMode } = useTheme();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,7 +45,7 @@ const Sidebar: React.FC = () => {
 
         <nav className="space-y-4 w-full px-3">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.includes(item.path));
+            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
             const Icon = item.icon;
             return (
               <button
@@ -69,12 +71,24 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      <div className="px-3 w-full">
-        <button className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${
-          darkMode 
-            ? 'text-slate-600 hover:text-red-400 hover:bg-red-500/10' 
-            : 'text-slate-300 hover:text-red-500 hover:bg-red-50'
-        }`}>
+      <div className="px-3 w-full space-y-4">
+        {user && (
+          <div title={user.name} className="w-full aspect-square flex items-center justify-center">
+              <img 
+                src={`https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=random&color=fff&bold=true`}
+                alt={user.name}
+                className="w-10 h-10 rounded-full border-2 border-white/10"
+              />
+          </div>
+        )}
+        <button 
+          onClick={signOut}
+          title="Sair"
+          className={`w-full aspect-square rounded-2xl flex items-center justify-center transition-all ${
+            darkMode 
+              ? 'text-slate-600 hover:text-red-400 hover:bg-red-500/10' 
+              : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
+          }`}>
           <LogOut className="w-6 h-6" />
         </button>
       </div>

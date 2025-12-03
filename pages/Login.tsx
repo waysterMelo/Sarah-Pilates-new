@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../src/services/api';
+import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
 import {
   Mail,
@@ -16,8 +15,7 @@ import {
 
 const Login: React.FC = () => {
   const { darkMode } = useTheme();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -27,28 +25,14 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
     try {
-      const response = await api.post('/api/auth/login', {
-        username: formData.email,
-        password: formData.password
-      });
-
-      // Assumindo que o token vem em response.data.token
-      const { token } = response.data;
-      localStorage.setItem('authToken', token);
-
-      // Configurar header de autorização para requisições futuras
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      navigate('/dashboard');
+      await signIn({ email: formData.email, password: formData.password });
+      // Navigation is now handled by AppRoutes after state update
     } catch (err) {
       console.error('Login failed:', err);
       setError('Email ou senha inválidos. Tente novamente.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -190,10 +174,10 @@ const Login: React.FC = () => {
 
               <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={loading}
                   className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-bold text-lg bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 shadow-lg shadow-primary-500/25 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                {isLoading ? (
+                {loading ? (
                     <div className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                     <>

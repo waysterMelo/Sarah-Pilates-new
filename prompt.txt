@@ -1,9 +1,27 @@
-pagina inicial do ssitema agora :
+Message    : You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '4     VALUES (
 
-Welcome to nginx!
-If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+    5         'Admin User',
 
-For online documentation and support please refer to nginx.org.
-Commercial support is available at nginx.com.
+    6         'admin@sarahpilates.c' at line 2
 
-Thank you for using nginx.
+Location   : db/migration/V6__Add_Test_Login_User.sql (/app/nested:/app/app.jar/!BOOT-INF/classes/!/db/migration/V6__Add_Test_Login_User.sql)
+
+Line       : 1
+
+Statement  : INSERT INTO instructors (name, email, password, role, status, hire_date)
+
+    4     VALUES (
+
+    5         'Admin User',
+
+    6         'admin@sarahpilates.com',
+
+    7         '$2a$10$3z0.nSmi32n3s7lR/GzMzeJ5ZZm6i5z2.H.3T.hYp5Y3iA2pTPoI.', -- senha: '123456'
+
+    8         'ROLE_ADMIN',
+
+    9         'ATIVO',
+
+    10         CURDATE()
+
+    11     )
