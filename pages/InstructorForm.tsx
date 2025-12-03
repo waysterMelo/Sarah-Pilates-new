@@ -1,28 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
 import {
-  ArrowLeft,
-  Save,
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  Award,
-  Clock,
-  FileText,
-  Plus,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  ChevronRight,
-  ChevronLeft,
-  DollarSign
+    ArrowLeft,
+    Save,
+    User,
+    Award,
+    Clock,
+    FileText,
+    CheckCircle2,
+    ChevronRight,
+    DollarSign,
+    Plus
 } from 'lucide-react';
-
-interface InstructorFormProps {
-  darkMode: boolean;
-}
+import api from '../src/services/api';
 
 interface WorkingHours {
   start: string;
@@ -46,11 +37,12 @@ interface InstructorData {
   hireDate: string;
   hourlyRate: number;
   workingHours: {
-    [key: string]: WorkingHours;
+    [key:string]: WorkingHours;
   };
 }
 
-const InstructorForm: React.FC<InstructorFormProps> = ({ darkMode }) => {
+const InstructorForm: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -110,57 +102,49 @@ const InstructorForm: React.FC<InstructorFormProps> = ({ darkMode }) => {
     { key: 'sunday', label: 'Domingo', short: 'Dom' }
   ];
 
-  // Mock data loading
   useEffect(() => {
-    if (isEdit) {
-      if (location.state?.instructor) {
-        const inst = location.state.instructor;
-        setFormData(prev => ({
-           ...prev,
-           name: inst.name,
-           email: inst.email,
-           phone: inst.phone,
-           status: inst.status,
-           specialties: inst.specialties || [],
-           hourlyRate: inst.hourlyRate || 0,
-           // Fill with mock defaults for data missing from list view
-           birthDate: prev.birthDate || '1985-05-20',
-           address: prev.address || 'Endereço não informado',
-           emergencyContact: prev.emergencyContact || 'Contato Emergência',
-           emergencyPhone: prev.emergencyPhone || '(00) 00000-0000',
-           experience: prev.experience || 'Experiência não informada',
-           bio: prev.bio || 'Biografia não informada',
-        }));
-      } else {
-        // Fallback mock data
-        setFormData({
-          name: 'Sarah Costa Silva',
-          email: 'sarah.costa@email.com',
-          phone: '(11) 99999-9999',
-          birthDate: '1985-05-20',
-          address: 'Rua das Palmeiras, 456 - SP',
-          emergencyContact: 'Carlos Costa',
-          emergencyPhone: '(11) 88888-8888',
-          specialties: ['Pilates Solo', 'Reformer'],
-          certifications: ['PMA Certified'],
-          experience: '8 anos de experiência...',
-          bio: 'Apaixonada por movimento...',
-          status: 'Ativo',
-          hireDate: '2020-01-15',
-          hourlyRate: 85,
-          workingHours: {
-            monday: { start: '08:00', end: '18:00', available: true },
-            tuesday: { start: '08:00', end: '18:00', available: true },
-            wednesday: { start: '08:00', end: '18:00', available: true },
-            thursday: { start: '08:00', end: '18:00', available: true },
-            friday: { start: '08:00', end: '16:00', available: true },
-            saturday: { start: '08:00', end: '12:00', available: true },
-            sunday: { start: '08:00', end: '12:00', available: false }
-          }
-        });
-      }
+    if (isEdit && id) {
+      const fetchInstructor = async () => {
+        try {
+          const { data } = await api.get(`/api/instructors/${id}`);
+          // Note: The DTO from backend might not match the form state structure exactly.
+          // A mapping/adapter function would be ideal here in a real-world app.
+          setFormData(prev => ({
+            ...prev,
+            name: data.name,
+            email: data.email,
+            phone: data.phone || '',
+            status: data.status,
+            specialties: data.specialties || [],
+            hourlyRate: data.hourlyRate || 0,
+            birthDate: data.birthDate || '',
+            address: data.address || '',
+            bio: data.bio || '',
+            hireDate: data.hireDate || new Date().toISOString().split('T')[0],
+            // Assuming workingHours comes in a format that needs to be adapted
+            // This is a placeholder, as the backend DTO might be different
+            workingHours: data.workingHours ? adaptWorkingHoursToForm(data.workingHours) : prev.workingHours,
+          }));
+        } catch (error) {
+          console.error("Failed to fetch instructor", error);
+          // Handle error, e.g., show a notification and navigate back
+          navigate('/instructors');
+        }
+      };
+      fetchInstructor();
     }
-  }, [isEdit, location.state]);
+  }, [isEdit, id, navigate]);
+
+  // Helper function to adapt backend working hours to form state
+  const adaptWorkingHoursToForm = (hoursFromBackend: any[]) => {
+    const hours = { ...formData.workingHours }; // Start with default
+    hoursFromBackend.forEach(h => {
+      const dayKey = h.dayOfWeek.toLowerCase();
+      hours[dayKey] = { start: h.startTime, end: h.endTime, available: true };
+    });
+    return hours;
+  };
+
 
   const validateStep = (step: number) => {
     const newErrors: Record<string, string> = {};
@@ -185,10 +169,38 @@ const InstructorForm: React.FC<InstructorFormProps> = ({ darkMode }) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
+  // Helper function to adapt form working hours to backend DTO
+  const adaptWorkingHoursToDTO = (hoursFromForm: { [key: string]: WorkingHours }) => {
+    return Object.entries(hoursFromForm).map(([day, times]) => ({
+      dayOfWeek: day.toUpperCase(), // MONDAY, TUESDAY, etc.
+      startTime: times.start,
+      endTime: times.end,
+      isAvailable: times.available,
+    }));
+  };
+
+  const handleSubmit = async () => {
     if (validateStep(currentStep)) {
-      console.log('Saving:', formData);
-      navigate('/instructors');
+      // Create a password for new instructors, as it's required by the backend
+      // In a real app, this should be handled more securely.
+      const payload = {
+        ...formData,
+        password: 'password123', // Default password for new users
+        role: 'INSTRUCTOR', // Default role
+        workingHours: adaptWorkingHoursToDTO(formData.workingHours)
+      };
+
+      try {
+        if (isEdit) {
+          await api.put(`/api/instructors/${id}`, payload);
+        } else {
+          await api.post('/api/instructors', payload);
+        }
+        navigate('/instructors');
+      } catch (error) {
+        console.error('Failed to save instructor', error);
+        // Here you could set an error state to display a message to the user
+      }
     }
   };
 

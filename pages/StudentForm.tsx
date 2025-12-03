@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import api from '../src/services/api';
 import {
   ArrowLeft,
   Save,
@@ -18,9 +19,7 @@ import {
   X
 } from 'lucide-react';
 
-interface StudentFormProps {
-  darkMode: boolean;
-}
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface StudentData {
   name: string;
@@ -48,7 +47,8 @@ interface StudentData {
   documents: Array<{ name: string; size: string; type: string }>;
 }
 
-const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
+const StudentForm: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -90,51 +90,34 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
 
   useEffect(() => {
     if (isEdit) {
-      if (location.state?.student) {
-        const s = location.state.student;
-        setFormData(prev => ({
-          ...prev,
-          name: s.name,
-          email: s.email,
-          phone: s.phone,
-          plan: s.plan || 'Mensal - 8 aulas',
-          status: s.status,
-          birthDate: prev.birthDate || '1990-01-01',
-          address: prev.address || 'Endereço não informado',
-          emergencyContact: prev.emergencyContact || 'Contato Emergência',
-          emergencyPhone: prev.emergencyPhone || '(00) 00000-0000',
-        }));
-      } else {
-        // Mock fallback
-        setFormData({
-          name: 'Ana Silva Santos',
-          email: 'ana.silva@email.com',
-          phone: '(11) 99999-9999',
-          birthDate: '1995-05-20',
-          address: 'Rua das Flores, 123',
-          emergencyContact: 'Maria Silva',
-          emergencyPhone: '(11) 98888-8888',
-          medical: {
-             allergies: 'Dipirona',
-             surgeries: 'Apêndice (2015)',
-             medications: 'Anticoncepcional',
-             restrictions: 'Nenhuma',
-             heartCondition: false,
-             dizziness: true,
-             boneJointProblem: false,
-             diabetes: false,
-             hypertension: false
-          },
-          objectives: 'Melhorar postura e flexibilidade',
-          plan: 'Mensal - 8 aulas',
-          status: 'Ativo',
-          documents: [
-            { name: 'Atestado_Medico.pdf', size: '2.4 MB', type: 'PDF' }
-          ]
-        });
-      }
+      const fetchStudent = async () => {
+        try {
+          const { data } = await api.get(`/api/students/${id}`);
+          setFormData(prev => ({
+            ...prev,
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            birthDate: data.birthDate,
+            address: data.address,
+            emergencyContact: data.emergencyContact,
+            emergencyPhone: data.emergencyPhone,
+            plan: data.plan,
+            status: data.status,
+            medical: {
+              ...prev.medical,
+              ...data.anamnesis // Spread the anamnesis data into the medical object
+            },
+            // Documents would be fetched from a separate endpoint if needed
+          }));
+        } catch (error) {
+          console.error("Failed to fetch student", error);
+          navigate('/students');
+        }
+      };
+      fetchStudent();
     }
-  }, [isEdit, location.state]);
+  }, [isEdit, id, navigate]);
 
   const validateStep = (step: number) => {
     const newErrors: Record<string, string> = {};
@@ -160,10 +143,43 @@ const StudentForm: React.FC<StudentFormProps> = ({ darkMode }) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateStep(currentStep)) {
-      console.log('Saving student:', formData);
-      navigate('/students');
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        birthDate: formData.birthDate,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
+        status: formData.status.toUpperCase(), // Match enum on backend
+        plan: formData.plan,
+        anamnesis: {
+          allergies: formData.medical.allergies,
+          surgeries: formData.medical.surgeries,
+          medications: formData.medical.medications,
+          restrictions: formData.medical.restrictions,
+          heartCondition: formData.medical.heartCondition,
+          dizziness: formData.medical.dizziness,
+          boneJointProblem: formData.medical.boneJointProblem,
+          diabetes: formData.medical.diabetes,
+          hypertension: formData.medical.hypertension,
+          objectives: formData.objectives,
+        }
+      };
+
+      try {
+        if (isEdit) {
+          await api.put(`/api/students/${id}`, payload);
+        } else {
+          await api.post('/api/students', payload);
+        }
+        navigate('/students');
+      } catch (error) {
+        console.error("Failed to save student", error);
+        // Handle and show error
+      }
     }
   };
 

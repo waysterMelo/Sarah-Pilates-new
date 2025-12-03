@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dumbbell,
@@ -17,12 +17,13 @@ import {
   ArrowLeft,
   BarChart3,
   Star,
-  Calendar
+  Calendar,
+  AlertTriangle,
+  Loader
 } from 'lucide-react';
+import api from '../src/services/api';
 
-interface ClassesProps {
-  darkMode: boolean;
-}
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface ClassType {
   id: number;
@@ -39,103 +40,51 @@ interface ClassType {
   active: boolean;
 }
 
-const Classes: React.FC<ClassesProps> = ({ darkMode }) => {
+const Classes: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
 
-  // Mock Data
-  const [classes, setClasses] = useState<ClassType[]>([
-    {
-      id: 1,
-      name: 'Pilates Solo (Mat)',
-      description: 'Exercícios realizados no solo com foco em controle corporal e respiração.',
-      duration: 60,
-      price: 80.00,
-      capacity: 12,
-      intensity: 'Média',
-      color: 'from-blue-500 to-cyan-500',
-      equipment: ['Mat', 'Bola', 'Faixa'],
-      totalSessions: 145,
-      rating: 4.8,
-      active: true
-    },
-    {
-      id: 2,
-      name: 'Reformer Clássico',
-      description: 'Aula utilizando o aparelho Reformer para resistência e alinhamento.',
-      duration: 50,
-      price: 100.00,
-      capacity: 4,
-      intensity: 'Alta',
-      color: 'from-purple-500 to-pink-500',
-      equipment: ['Reformer'],
-      totalSessions: 210,
-      rating: 4.9,
-      active: true
-    },
-    {
-      id: 3,
-      name: 'Pilates Terapêutico',
-      description: 'Focado em reabilitação e alívio de dores específicas.',
-      duration: 45,
-      price: 120.00,
-      capacity: 2,
-      intensity: 'Baixa',
-      color: 'from-emerald-500 to-green-500',
-      equipment: ['Cadillac', 'Chair'],
-      totalSessions: 89,
-      rating: 5.0,
-      active: true
-    },
-    {
-      id: 4,
-      name: 'Power Pilates',
-      description: 'Abordagem fitness com maior intensidade e queima calórica.',
-      duration: 50,
-      price: 90.00,
-      capacity: 8,
-      intensity: 'Alta',
-      color: 'from-orange-500 to-red-500',
-      equipment: ['Mat', 'Pesos', 'Kettlebell'],
-      totalSessions: 56,
-      rating: 4.7,
-      active: true
-    },
-    {
-      id: 5,
-      name: 'Pilates para Idosos',
-      description: 'Exercícios adaptados para melhor idade, foco em equilíbrio.',
-      duration: 45,
-      price: 75.00,
-      capacity: 6,
-      intensity: 'Baixa',
-      color: 'from-indigo-500 to-blue-500',
-      equipment: ['Chair', 'Bola'],
-      totalSessions: 112,
-      rating: 4.9,
-      active: true
-    }
-  ]);
+  const [classes, setClasses] = useState<ClassType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredClasses = classes.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getIntensityColor = (intensity: string) => {
+  const getIntensityColor = (intensity: 'Baixa' | 'Média' | 'Alta') => {
     switch (intensity) {
-      case 'Baixa': return 'text-emerald-500 bg-emerald-100 dark:bg-emerald-500/20';
-      case 'Média': return 'text-blue-500 bg-blue-100 dark:bg-blue-500/20';
-      case 'Alta': return 'text-orange-500 bg-orange-100 dark:bg-orange-500/20';
-      default: return 'text-gray-500 bg-gray-100';
+        case 'Baixa': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300';
+        case 'Média': return 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300';
+        case 'Alta': return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300';
+        default: return 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300';
+    }
+  }
+
+  const fetchClasses = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/classtypes');
+      setClasses(response.data.content);
+    } catch (err) {
+      setError('Falha ao buscar modalidades.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = (id: number) => {
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja arquivar esta modalidade?')) {
-      setClasses(prev => prev.filter(c => c.id !== id));
+      try {
+        await api.delete(`/api/classtypes/${id}`);
+        fetchClasses(); // Refresh data
+      } catch (err) {
+        console.error('Failed to delete class type', err);
+        setError('Falha ao arquivar modalidade.');
+      }
     }
     setActiveDropdown(null);
   };
@@ -253,7 +202,17 @@ const Classes: React.FC<ClassesProps> = ({ darkMode }) => {
         </div>
 
         {/* Grid View */}
-        {viewMode === 'cards' ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="w-8 h-8 animate-spin text-primary-500" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64 bg-red-500/10 text-red-500 rounded-2xl">
+            <AlertTriangle className="w-12 h-12 mb-4" />
+            <h3 className="text-xl font-bold">Ocorreu um erro</h3>
+            <p>{error}</p>
+          </div>
+        ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredClasses.map(cls => (
               <div key={cls.id} className={`group relative rounded-3xl border overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl ${darkMode ? 'bg-slate-900 border-white/5 hover:border-white/10' : 'bg-white border-gray-100 shadow-sm'}`}>

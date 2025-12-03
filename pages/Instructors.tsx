@@ -17,12 +17,11 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle,
+  Loader
 } from 'lucide-react';
-
-interface InstructorsProps {
-  darkMode: boolean;
-}
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface Instructor {
   id: number;
@@ -37,48 +36,41 @@ interface Instructor {
   hourlyRate: number;
 }
 
-const Instructors: React.FC<InstructorsProps> = ({ darkMode }) => {
+const Instructors: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   
-  // Mock Data
-  const [instructors, setInstructors] = useState<Instructor[]>([
-    {
-      id: 1,
-      name: 'Sarah Costa Silva',
-      email: 'sarah.costa@email.com',
-      phone: '(11) 99999-9999',
-      specialties: ['Pilates Solo', 'Reformer'],
-      status: 'Ativo',
-      rating: 4.9,
-      totalClasses: 1250,
-      hourlyRate: 85,
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-    },
-    {
-      id: 2,
-      name: 'Roberto Lima',
-      email: 'roberto@email.com',
-      phone: '(11) 98888-8888',
-      specialties: ['Funcional', 'Atletas'],
-      status: 'Férias',
-      rating: 4.7,
-      totalClasses: 850,
-      hourlyRate: 80,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-    },
-    ...Array.from({ length: 10 }, (_, i) => ({
-      id: i + 3,
-      name: `Instrutor ${i + 3}`,
-      email: `instrutor${i + 3}@email.com`,
-      phone: `(11) 97777-${String(i).padStart(4, '0')}`,
-      specialties: ['Solo', 'Aparelhos'],
-      status: ['Ativo', 'Inativo', 'Férias'][i % 3] as 'Ativo' | 'Inativo' | 'Férias',
-      rating: 4.0 + Math.random(),
-      totalClasses: Math.floor(Math.random() * 500) + 100,
-      hourlyRate: 70 + (i * 2),
-      avatar: `https://i.pravatar.cc/150?u=${i + 10}`
-    }))
-  ]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchInstructors = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/instructors');
+      setInstructors(response.data.content);
+    } catch (err) {
+      setError('Falha ao buscar instrutores.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInstructors();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este instrutor?')) {
+      try {
+        await api.delete(`/api/instructors/${id}`);
+        fetchInstructors(); // Refresh data
+      } catch (err) {
+        console.error('Error deleting instructor:', err);
+        setError('Falha ao excluir instrutor.');
+      }
+    }
+  };
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('Todos');
@@ -251,7 +243,17 @@ const Instructors: React.FC<InstructorsProps> = ({ darkMode }) => {
         </div>
 
         {/* Content Grid */}
-        {viewMode === 'cards' ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="w-8 h-8 animate-spin text-primary-500" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64 bg-red-500/10 text-red-500 rounded-2xl">
+            <AlertTriangle className="w-12 h-12 mb-4" />
+            <h3 className="text-xl font-bold">Ocorreu um erro</h3>
+            <p>{error}</p>
+          </div>
+        ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
             {currentInstructors.map((instructor) => (
               <div
@@ -302,7 +304,7 @@ const Instructors: React.FC<InstructorsProps> = ({ darkMode }) => {
                             <Edit2 className="w-3 h-3" /> Editar
                           </button>
                           <div className={`h-[1px] w-full ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`} />
-                          <button className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
+                          <button onClick={() => handleDelete(instructor.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
                             <Trash2 className="w-3 h-3" /> Excluir
                           </button>
                         </div>

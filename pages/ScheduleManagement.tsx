@@ -1,35 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  Plus, 
-  Edit, 
-  Eye, 
-  Trash2,
-  Clock,
-  User,
-  Users,
-  GraduationCap,
-  ArrowLeft,
-  CheckCircle2,
-  XCircle,
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {
   AlertCircle,
-  MapPin,
-  DollarSign,
-  Grid3X3,
-  List,
-  MoreVertical,
-  TrendingUp,
-  Award,
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Timeline,
+  Clock,
+  DollarSign,
+  Edit,
+  Eye,
+  GraduationCap,
+  MapPin,
+  Plus,
   Search,
   Target,
-  Sparkles
+  Trash2,
+  User,
+  XCircle
 } from 'lucide-react';
+import api from '../src/services/api';
 import ScheduleForm from './ScheduleForm';
 import ScheduleDetails from './ScheduleDetails';
+
+import {useTheme} from '../src/contexts/ThemeContext';
 
 interface Schedule {
   id: number;
@@ -60,11 +55,8 @@ interface CalendarDay {
   revenue: number;
 }
 
-interface ScheduleManagementProps {
-  darkMode?: boolean;
-}
-
-const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => {
+const ScheduleManagement: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -72,134 +64,37 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => 
   const [searchTerm, setSearchTerm] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(false);
   
-  const [schedules, setSchedules] = useState<Schedule[]>([
-    {
-      id: 1,
-      studentId: 1,
-      studentName: 'Ana Silva Santos',
-      instructorId: 1,
-      instructorName: 'Sarah Costa Silva',
-      date: '2025-10-15',
-      startTime: '09:00',
-      endTime: '10:00',
-      type: 'Pilates Solo',
-      status: 'Confirmado',
-      notes: 'Foco em fortalecimento do core',
-      room: 'Sala 1',
-      equipment: ['Mat', 'Bola'],
-      price: 80,
-      paymentStatus: 'Pago',
-      createdAt: '2024-12-10T10:00:00Z'
-    },
-    {
-      id: 2,
-      studentId: 2,
-      studentName: 'Maria Santos Oliveira',
-      instructorId: 1,
-      instructorName: 'Sarah Costa Silva',
-      date: '2025-10-15',
-      startTime: '10:00',
-      endTime: '11:00',
-      type: 'Pilates Aparelhos',
-      status: 'Agendado',
-      notes: 'Primeira aula com aparelhos',
-      room: 'Sala 2',
-      equipment: ['Reformer', 'Cadillac'],
-      price: 100,
-      paymentStatus: 'Pendente',
-      createdAt: '2024-12-12T14:30:00Z'
-    },
-    {
-      id: 3,
-      studentId: 3,
-      studentName: 'João Pedro Costa',
-      instructorId: 2,
-      instructorName: 'Carla Mendes Santos',
-      date: '2025-10-16',
-      startTime: '14:00',
-      endTime: '15:00',
-      type: 'Pilates Terapêutico',
-      status: 'Confirmado',
-      notes: 'Reabilitação lombar',
-      room: 'Sala 3',
-      equipment: ['Mat', 'Theraband', 'Bola'],
-      price: 90,
-      paymentStatus: 'Pago',
-      createdAt: '2024-12-11T16:45:00Z'
-    },
-    {
-      id: 4,
-      studentId: 1,
-      studentName: 'Ana Silva Santos',
-      instructorId: 2,
-      instructorName: 'Carla Mendes Santos',
-      date: '2025-10-15',
-      startTime: '15:00',
-      endTime: '16:00',
-      type: 'Pilates Solo',
-      status: 'Agendado',
-      notes: 'Continuidade do tratamento',
-      room: 'Sala 1',
-      equipment: ['Mat', 'Magic Circle'],
-      price: 80,
-      paymentStatus: 'Pendente',
-      createdAt: '2024-12-09T11:20:00Z'
-    },
-    {
-      id: 5,
-      studentId: 4,
-      studentName: 'Pedro Santos Lima',
-      instructorId: 1,
-      instructorName: 'Sarah Costa Silva',
-      date: '2025-10-16',
-      startTime: '16:00',
-      endTime: '17:00',
-      type: 'Personal Training',
-      status: 'Confirmado',
-      notes: 'Treino personalizado',
-      room: 'Sala 1',
-      equipment: ['Reformer', 'Mat'],
-      price: 120,
-      paymentStatus: 'Pago',
-      createdAt: '2025-10-10T09:00:00Z'
-    },
-    {
-      id: 6,
-      studentId: 5,
-      studentName: 'Laura Mendes',
-      instructorId: 2,
-      instructorName: 'Carla Mendes Santos',
-      date: '2025-10-15',
-      startTime: '08:00',
-      endTime: '09:00',
-      type: 'Pilates Matinal',
-      status: 'Confirmado',
-      notes: 'Aula energizante matinal',
-      room: 'Sala 2',
-      equipment: ['Mat', 'Bola', 'Theraband'],
-      price: 85,
-      paymentStatus: 'Pago',
-      createdAt: '2025-10-12T14:20:00Z'
-    },
-    {
-      id: 7,
-      studentId: 6,
-      studentName: 'Roberto Silva',
-      instructorId: 1,
-      instructorName: 'Sarah Costa Silva',
-      date: '2025-10-17',
-      startTime: '09:30',
-      endTime: '10:30',
-      type: 'Pilates Funcional',
-      status: 'Confirmado',
-      notes: 'Fortalecimento funcional',
-      room: 'Sala 1',
-      equipment: ['Mat', 'Bosu', 'Theraband'],
-      price: 95,
-      paymentStatus: 'Pago',
-      createdAt: '2025-10-13T10:15:00Z'
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSchedules = async (startDate: Date, endDate: Date) => {
+    try {
+      setLoading(true);
+      const params = {
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        // The backend seems to expect pagination, but for the calendar view, 
+        // fetching all events for the month is often simpler.
+        // Adjust if performance becomes an issue.
+        size: 1000 // Fetch up to 1000 schedules for the given range
+      };
+      const response = await api.get('/api/schedules', { params });
+      setSchedules(response.data.content);
+    } catch (err) {
+      console.error("Failed to fetch schedules", err);
+      setError("Não foi possível carregar os agendamentos.");
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    fetchSchedules(firstDayOfMonth, lastDayOfMonth);
+  }, [currentMonth]);
+
 
   const [showForm, setShowForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -355,31 +250,45 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => 
     setActiveDropdown(null);
   };
 
-  const handleDeleteSchedule = (scheduleId: number) => {
-    if (window.confirm('Tem certeza que deseja cancelar este agendamento?')) {
-      setSchedules(schedules.map(s => 
-        s.id === scheduleId ? { ...s, status: 'Cancelado' as const } : s
-      ));
+  const handleDeleteSchedule = async (scheduleId: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este agendamento?')) {
+      try {
+        await api.delete(`/api/schedules/${scheduleId}`);
+        // Refetch schedules for the current month
+        const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+        fetchSchedules(firstDayOfMonth, lastDayOfMonth);
+      } catch (err) {
+        console.error("Failed to delete schedule", err);
+        setError("Não foi possível excluir o agendamento.");
+      }
     }
     setActiveDropdown(null);
   };
 
-  const handleSaveSchedule = (scheduleData: Omit<Schedule, 'id'>) => {
-    if (editMode && selectedSchedule && selectedSchedule.id > 0) {
-      setSchedules(schedules.map(s => 
-        s.id === selectedSchedule.id 
-          ? { ...scheduleData, id: selectedSchedule.id }
-          : s
-      ));
-    } else {
-      const newSchedule = {
+  const handleSaveSchedule = async (scheduleData: any) => {
+    try {
+      const payload = {
         ...scheduleData,
-        id: Math.max(...schedules.map(s => s.id), 0) + 1
+        // The form should provide these IDs. Assuming they are in scheduleData.
       };
-      setSchedules([...schedules, newSchedule]);
+
+      if (editMode && selectedSchedule) {
+        await api.put(`/api/schedules/${selectedSchedule.id}`, payload);
+      } else {
+        await api.post('/api/schedules', payload);
+      }
+      setShowForm(false);
+      setSelectedSchedule(null);
+      // Refetch schedules for the current month
+      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      fetchSchedules(firstDayOfMonth, lastDayOfMonth);
+    } catch (err) {
+      console.error("Failed to save schedule", err);
+      setError("Não foi possível salvar o agendamento.");
+      // Optionally, leave the form open and show an error message
     }
-    setShowForm(false);
-    setSelectedSchedule(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -441,7 +350,6 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => 
           setSelectedSchedule(null);
           setPreselectedDate('');
         }}
-        darkMode={darkMode}
       />
     );
   }
@@ -460,7 +368,6 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => 
             s.id === scheduleId ? { ...s, status: newStatus } : s
           ));
         }}
-        darkMode={darkMode}
       />
     );
   }
@@ -1188,18 +1095,7 @@ const ScheduleManagement: React.FC<ScheduleManagementProps> = ({ darkMode }) => 
         {/* Ações rápidas expandidas */}
         {showQuickActions && (
           <div className="absolute bottom-20 right-0 space-y-3">
-            <button
-              onClick={() => {
-                navigate('/schedule/capacity');
-                setShowQuickActions(false);
-              }}
-              className={`flex items-center gap-3 rounded-xl shadow-lg border px-4 py-3 hover:shadow-xl transition-all hover:-translate-y-1 group ${darkMode ? 'bg-slate-800 border-white/10 text-white' : 'bg-white text-gray-700'}`}
-            >
-              <Users className="w-5 h-5 text-orange-500 group-hover:text-orange-600" />
-              <span className="text-sm font-medium whitespace-nowrap">
-                Gerenciar Capacidade
-              </span>
-            </button>
+
             <button
               onClick={() => {
                 handleAddScheduleForDate(selectedDate);

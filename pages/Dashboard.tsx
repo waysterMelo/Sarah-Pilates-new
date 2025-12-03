@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
 import DashboardCards from '../components/DashboardCards';
 import QuickActions from '../components/QuickActions';
 import { 
@@ -13,26 +14,41 @@ import {
   Activity
 } from 'lucide-react';
 
-interface DashboardProps {
-  darkMode: boolean;
-  toggleTheme: () => void;
-}
+import api from '../src/services/api';
 
-const Dashboard: React.FC<DashboardProps> = ({ darkMode, toggleTheme }) => {
+const Dashboard: React.FC = () => {
+  const { darkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [quickStats, setQuickStats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await api.get('/api/dashboard/stats');
+        const { data } = response;
+        const formattedStats = [
+          { label: 'Receita', value: `R$ ${data.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: data.revenueChange, icon: DollarSign, color: 'emerald' },
+          { label: 'Alunos', value: data.totalStudents, change: data.studentsChange, icon: Users, color: 'blue' },
+          { label: 'Aulas', value: `${data.todayClasses} hoje`, change: data.classesChange, icon: Activity, color: 'purple' },
+        ];
+        setQuickStats(formattedStats);
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        setError('Erro ao carregar as estatísticas.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+
     return () => clearInterval(timer);
   }, []);
-
-  // Quick Stats Data for the top strip
-  const quickStats = [
-    { label: 'Receita', value: 'R$ 18.2k', change: '+12%', icon: DollarSign, color: 'emerald' },
-    { label: 'Alunos', value: '147', change: '+4', icon: Users, color: 'blue' },
-    { label: 'Aulas', value: '24 hoje', change: 'Normal', icon: Activity, color: 'purple' },
-  ];
 
   return (
     <main className={`min-h-screen relative overflow-hidden p-6 lg:p-10 transition-colors duration-500 font-sans ${
@@ -105,28 +121,34 @@ const Dashboard: React.FC<DashboardProps> = ({ darkMode, toggleTheme }) => {
 
         {/* Quick Stats Strip */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          {quickStats.map((stat, index) => (
-            <div key={index} className={`flex items-center gap-4 p-4 rounded-3xl border transition-all ${
-               darkMode ? 'bg-white/5 border-white/5' : 'bg-white/60 border-white/50 shadow-sm backdrop-blur-sm'
-            }`}>
-               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                  darkMode ? `bg-${stat.color}-500/20 text-${stat.color}-400` : `bg-${stat.color}-50 text-${stat.color}-500`
-               }`}>
-                  <stat.icon className="w-5 h-5" />
-               </div>
-               <div>
-                  <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</p>
-                  <div className="flex items-baseline gap-2">
-                     <span className="text-xl font-bold">{stat.value}</span>
-                     <span className={`text-xs font-medium ${
-                        stat.change.includes('+') 
-                           ? (darkMode ? 'text-emerald-400' : 'text-emerald-600') 
-                           : 'text-slate-400'
-                     }`}>{stat.change}</span>
-                  </div>
-               </div>
-            </div>
-          ))}
+          {loading ? (
+            <p>Carregando estatísticas...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            quickStats.map((stat, index) => (
+              <div key={index} className={`flex items-center gap-4 p-6 rounded-3xl border transition-all ${
+                 darkMode ? 'bg-slate-800/60 border-slate-700 hover:border-slate-600 shadow-md' : 'bg-white border-slate-100 shadow-lg'
+              }`}>
+                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                    darkMode ? `bg-${stat.color}-500/20 text-${stat.color}-400` : `bg-${stat.color}-50 text-${stat.color}-500`
+                 }`}>
+                    <stat.icon className="w-5 h-5" />
+                 </div>
+                 <div>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</p>
+                    <div className="flex items-baseline gap-2">
+                       <span className="text-3xl font-extrabold">{stat.value}</span>
+                       <span className={`text-xs font-medium ${
+                          stat.change.includes('+') 
+                             ? (darkMode ? 'text-emerald-400' : 'text-emerald-600') 
+                             : 'text-slate-400'
+                       }`}>{stat.change}</span>
+                    </div>
+                 </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Main Navigation Cards */}

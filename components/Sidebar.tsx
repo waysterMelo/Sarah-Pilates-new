@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
 import { 
   LayoutGrid, 
   CalendarHeart, 
@@ -11,11 +12,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-interface SidebarProps {
-  darkMode: boolean;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ darkMode }) => {
+const Sidebar: React.FC = () => {
+  const { darkMode } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 

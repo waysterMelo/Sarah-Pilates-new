@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import api from '../src/services/api';
 import {
   ArrowLeft,
   Save,
@@ -15,14 +16,31 @@ import {
   X
 } from 'lucide-react';
 
-interface ClassFormProps {
-  darkMode: boolean;
-}
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import api from '../src/services/api';
+import { useTheme } from '../src/contexts/ThemeContext';
+import {
+  ArrowLeft,
+  Save,
+  Dumbbell,
+  Clock,
+  DollarSign,
+  Users,
+  Zap,
+  FileText,
+  CheckCircle2,
+  Palette,
+  Plus,
+  X
+} from 'lucide-react';
 
-const ClassForm: React.FC<ClassFormProps> = ({ darkMode }) => {
+const ClassForm: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const isEdit = location.state?.classData;
+  const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -50,14 +68,48 @@ const ClassForm: React.FC<ClassFormProps> = ({ darkMode }) => {
 
   useEffect(() => {
     if (isEdit) {
-      setFormData(location.state.classData);
+      if (location.state?.classData) {
+        setFormData(location.state.classData);
+      } else {
+        const fetchClassType = async () => {
+          try {
+            const { data } = await api.get(`/api/classtypes/${id}`);
+            setFormData(data);
+          } catch (error) {
+            console.error("Failed to fetch class type", error);
+            navigate('/classes');
+          }
+        };
+        fetchClassType();
+      }
     }
-  }, [isEdit]);
+  }, [isEdit, id, location.state, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Saving class:', formData);
-    navigate('/classes');
+    
+    const intensityMap = {
+      'Baixa': 'BAIXA',
+      'Média': 'MEDIA',
+      'Alta': 'ALTA'
+    };
+
+    const payload = {
+      ...formData,
+      intensity: intensityMap[formData.intensity as keyof typeof intensityMap] || 'MEDIA',
+    };
+
+    try {
+      if (isEdit) {
+        await api.put(`/api/classtypes/${id}`, payload);
+      } else {
+        await api.post('/api/classtypes', payload);
+      }
+      navigate('/classes');
+    } catch (error) {
+      console.error('Failed to save class type', error);
+      // Handle and show error to user
+    }
   };
 
   const addEquipment = (item: string) => {

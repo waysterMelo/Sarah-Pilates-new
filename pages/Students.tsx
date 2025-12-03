@@ -19,12 +19,11 @@ import {
   LayoutGrid,
   List,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle,
+  Loader
 } from 'lucide-react';
-
-interface StudentsProps {
-  darkMode: boolean;
-}
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface Student {
   id: number;
@@ -38,34 +37,42 @@ interface Student {
   avatar?: string;
 }
 
-const Students: React.FC<StudentsProps> = ({ darkMode }) => {
+const Students: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   
-  // Mock Data Generation
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: 1,
-      name: 'Ana Silva Santos',
-      email: 'ana.silva@email.com',
-      phone: '(11) 99999-9999',
-      plan: 'Platinum',
-      status: 'Ativo',
-      lastClass: '2024-12-10',
-      totalClasses: 45,
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-    },
-    ...Array.from({ length: 24 }, (_, i) => ({
-      id: i + 2,
-      name: `Aluno ${i + 2}`,
-      email: `aluno${i + 2}@email.com`,
-      phone: `(11) 9999-${String(i).padStart(4, '0')}`,
-      plan: ['Gold', 'Silver', 'Platinum'][i % 3],
-      status: ['Ativo', 'Inativo', 'Suspenso'][i % 3] as 'Ativo' | 'Inativo' | 'Suspenso',
-      lastClass: '2024-12-01',
-      totalClasses: Math.floor(Math.random() * 50) + 1,
-      avatar: `https://i.pravatar.cc/150?u=${i + 2}`
-    }))
-  ]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/students');
+      setStudents(response.data.content);
+    } catch (err) {
+      setError('Falha ao buscar alunos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
+      try {
+        await api.delete(`/api/students/${id}`);
+        fetchStudents();
+      } catch (err) {
+        console.error('Failed to delete student', err);
+        setError('Falha ao excluir aluno.');
+      }
+    }
+  };
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('Todos');
@@ -262,7 +269,17 @@ const Students: React.FC<StudentsProps> = ({ darkMode }) => {
         </div>
 
         {/* Content Area */}
-        {viewMode === 'cards' ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="w-8 h-8 animate-spin text-primary-500" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64 bg-red-500/10 text-red-500 rounded-2xl">
+            <AlertTriangle className="w-12 h-12 mb-4" />
+            <h3 className="text-xl font-bold">Ocorreu um erro</h3>
+            <p>{error}</p>
+          </div>
+        ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             {currentStudents.map((student) => (
               <div
@@ -315,7 +332,7 @@ const Students: React.FC<StudentsProps> = ({ darkMode }) => {
                             <Edit2 className="w-3 h-3" /> Editar
                           </button>
                           <div className={`h-[1px] w-full ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`} />
-                          <button className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
+                          <button onClick={() => handleDelete(student.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
                             <Trash2 className="w-3 h-3" /> Excluir
                           </button>
                         </div>

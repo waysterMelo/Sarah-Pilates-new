@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
 import { 
   UsersRound, 
   Award, 
@@ -13,11 +14,8 @@ import {
   Dumbbell
 } from 'lucide-react';
 
-interface DashboardCardsProps {
-  darkMode: boolean;
-}
-
-const DashboardCards: React.FC<DashboardCardsProps> = ({ darkMode }) => {
+const DashboardCards: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
 
   const cardItems = [
@@ -115,12 +113,11 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({ darkMode }) => {
             <div
               key={index}
               onClick={() => navigate(item.path)}
-              className={`group relative p-6 h-[200px] rounded-[2rem] border cursor-pointer transition-all duration-500 ease-out hover:-translate-y-2 ${
-                darkMode 
-                  ? 'bg-slate-900/40 border-white/5 hover:border-white/10 hover:bg-slate-800/60' 
-                  : 'bg-white border-slate-100 hover:border-white hover:shadow-xl hover:shadow-slate-200/50'
-              }`}
-            >
+                            className={`group relative p-6 h-[200px] rounded-[2rem] border cursor-pointer transition-all duration-500 ease-out hover:-translate-y-2 ${
+                              darkMode
+                                ? 'bg-slate-900/60 border-slate-800 hover:border-primary-500/50 hover:bg-slate-800/70 shadow-lg'
+                                : 'bg-white border-slate-200 shadow-md hover:shadow-xl'
+                            }`}>
               {/* Hover Background Tint */}
               <div className={`absolute inset-0 rounded-[2rem] bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none`} />
 
@@ -129,12 +126,11 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({ darkMode }) => {
                 {/* Top Section: Icon & Action */}
                 <div className="flex justify-between items-start">
                   {/* Icon Container */}
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-lg ${
-                    darkMode 
-                        ? `bg-gradient-to-br ${item.gradient} text-white` 
-                        : `bg-gradient-to-br ${item.gradient} text-white ${item.shadow}`
-                  }`}>
-                    <Icon className="w-7 h-7" strokeWidth={1.5} />
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${
+                                      darkMode
+                                          ? `bg-gradient-to-br ${item.gradient} text-white shadow-2xl`
+                                          : `bg-gradient-to-br ${item.gradient} text-white shadow-xl ${item.shadow}`
+                                    }`}>                    <Icon className="w-7 h-7" strokeWidth={1.5} />
                   </div>
 
                   {/* Arrow Action */}

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useTheme } from '../src/contexts/ThemeContext';
 import { MapPin, AlertTriangle, Eye, Trash2, X } from 'lucide-react';
 
 export interface AnatomicalMarker {
@@ -15,7 +16,6 @@ interface AnatomicalDiagramProps {
   onMarkerAdd?: (marker: Omit<AnatomicalMarker, 'id'>) => void;
   onMarkerRemove?: (markerId: string) => void;
   readOnly?: boolean;
-  darkMode?: boolean;
 }
 
 const BODY_PARTS = {
@@ -42,9 +42,9 @@ const AnatomicalDiagram: React.FC<AnatomicalDiagramProps> = ({
   markers,
   onMarkerAdd,
   onMarkerRemove,
-  readOnly = false,
-  darkMode = false
+  readOnly = false
 }) => {
+  const { darkMode } = useTheme();
   const [hoveredBodyPart, setHoveredBodyPart] = useState<string | null>(null);
   const [showMarkerForm, setShowMarkerForm] = useState(false);
   const [markerPosition, setMarkerPosition] = useState<{ x: number; y: number } | null>(null);

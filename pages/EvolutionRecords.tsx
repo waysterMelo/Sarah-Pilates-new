@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FileText,
@@ -18,8 +18,11 @@ import {
     List,
     Dumbbell
 } from 'lucide-react';
+import api from '../src/services/api';
 import FichaEvolucaoPilates from './FichaEvolucaoPilates';
 import FichaEvolucaoDetails from './FichaEvolucaoDetails';
+
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface FichaEvolucao {
     id: number;
@@ -45,55 +48,31 @@ interface FichaEvolucao {
     createdAt: string;
 }
 
-interface EvolutionRecordsProps {
-    darkMode: boolean;
-}
-
-const EvolutionRecords: React.FC<EvolutionRecordsProps> = ({ darkMode }) => {
+const EvolutionRecords: React.FC = () => {
+    const { darkMode } = useTheme();
     const navigate = useNavigate();
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
     
-    // Mock Data
-    const [records, setRecords] = useState<FichaEvolucao[]>([
-        {
-            id: 1,
-            nomePaciente: 'Ana Silva Santos',
-            date: '2024-12-15',
-            mes: 'dezembro 2024',
-            pacienteChegou: 'Relatando dores lombares leves.',
-            foiRealizado: 'Fortalecimento do core e mobilização.',
-            exercicios: {
-                'MAT PILATES': {
-                    'MMSS': { alongamento: true, fortalecimento: false, coordenacao: true, equilibrio: false, core: false },
-                    'Coluna Vertebral': { alongamento: true, fortalecimento: true, coordenacao: true, equilibrio: false, core: true }
-                },
-                'REFORMER': {
-                    'MMII': { alongamento: false, fortalecimento: true, coordenacao: true, equilibrio: false, core: true }
-                }
-            } as any,
-            observacoes: 'Boa evolução, consciência corporal melhorou.',
-            fisioterapeuta: 'Sarah Costa Silva',
-            crefito: '123456-F',
-            createdAt: '2024-12-15T10:00:00Z'
-        },
-        {
-            id: 2,
-            nomePaciente: 'Maria Santos Oliveira',
-            date: '2024-12-14',
-            mes: 'dezembro 2024',
-            pacienteChegou: 'Sem dores, disposta.',
-            foiRealizado: 'Aula fluida com foco em MMII.',
-            exercicios: {
-                'CADILLAC': {
-                    'MMII': { alongamento: true, fortalecimento: true, coordenacao: false, equilibrio: true, core: false }
-                }
-            } as any,
-            observacoes: 'Aumentar carga na próxima sessão.',
-            fisioterapeuta: 'Carla Mendes',
-            crefito: '654321-F',
-            createdAt: '2024-12-14T14:30:00Z'
+    const [records, setRecords] = useState<FichaEvolucao[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchRecords = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get('/api/evaluations/evolution', { params: { size: 100 } });
+            setRecords(response.data.content);
+        } catch (err) {
+            console.error("Failed to fetch evolution records", err);
+            setError("Não foi possível carregar as fichas de evolução.");
+        } finally {
+            setLoading(false);
         }
-    ]);
+    };
+
+    useEffect(() => {
+        fetchRecords();
+    }, []);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [filterPatient, setFilterPatient] = useState('Todos');
@@ -128,20 +107,31 @@ const EvolutionRecords: React.FC<EvolutionRecordsProps> = ({ darkMode }) => {
         setShowDetails(true);
     };
 
-    const handleDeleteRecord = (recordId: number) => {
+    const handleDeleteRecord = async (recordId: number) => {
         if (window.confirm('Tem certeza que deseja excluir esta ficha?')) {
-            setRecords(records.filter(r => r.id !== recordId));
+            try {
+                await api.delete(`/api/evaluations/evolution/${recordId}`);
+                fetchRecords(); // Refresh data
+            } catch (err) {
+                console.error("Failed to delete evolution record", err);
+                setError("Não foi possível excluir a ficha.");
+            }
         }
     };
 
-    const handleSaveRecord = (recordData: Omit<FichaEvolucao, 'id'>) => {
-        if (editMode && selectedRecord) {
-            setRecords(records.map(r => r.id === selectedRecord.id ? { ...recordData, id: selectedRecord.id } : r));
-        } else {
-            const newRecord = { ...recordData, id: Math.max(...records.map(r => r.id), 0) + 1 };
-            setRecords([...records, newRecord]);
+    const handleSaveRecord = async (recordData: Omit<FichaEvolucao, 'id'>) => {
+        try {
+            if (editMode && selectedRecord) {
+                await api.put(`/api/evaluations/evolution/${selectedRecord.id}`, recordData);
+            } else {
+                await api.post('/api/evaluations/evolution', recordData);
+            }
+            setShowForm(false);
+            fetchRecords(); // Refresh data
+        } catch (err) {
+            console.error("Failed to save evolution record", err);
+            setError("Não foi possível salvar a ficha.");
         }
-        setShowForm(false);
     };
 
     const getActiveExerciseCount = (ficha: FichaEvolucao) => {
@@ -156,11 +146,11 @@ const EvolutionRecords: React.FC<EvolutionRecordsProps> = ({ darkMode }) => {
     };
 
     if (showForm) {
-        return <FichaEvolucaoPilates ficha={selectedRecord} isEdit={editMode} onSave={handleSaveRecord} onCancel={() => setShowForm(false)} darkMode={darkMode} />;
+        return <FichaEvolucaoPilates ficha={selectedRecord} isEdit={editMode} onSave={handleSaveRecord} onCancel={() => setShowForm(false)} />;
     }
 
     if (showDetails && selectedRecord) {
-        return <FichaEvolucaoDetails ficha={selectedRecord} onEdit={() => { setShowDetails(false); handleEditRecord(selectedRecord); }} onClose={() => setShowDetails(false)} darkMode={darkMode} />;
+        return <FichaEvolucaoDetails ficha={selectedRecord} onEdit={() => { setShowDetails(false); handleEditRecord(selectedRecord); }} onClose={() => setShowDetails(false)} />;
     }
 
     return (

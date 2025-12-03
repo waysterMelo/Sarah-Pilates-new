@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Search, Filter, Edit, Eye, Trash2, User, Calendar, Activity,
   TrendingUp, FileText, Target, MoreVertical, HeartPulse
 } from 'lucide-react';
+import { useTheme } from '../src/contexts/ThemeContext';
 import PhysicalEvaluationForm from './PhysicalEvaluationForm';
 import PhysicalEvaluationDetails from './PhysicalEvaluationDetails';
+import api from '../src/services/api'; // Import the API service
 
-const PhysicalEvaluation = ({ darkMode }: { darkMode?: boolean }) => {
+const PhysicalEvaluation: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [showForm, setShowForm] = useState(false);
@@ -16,50 +19,26 @@ const PhysicalEvaluation = ({ darkMode }: { darkMode?: boolean }) => {
   const [editMode, setEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [evaluations, setEvaluations] = useState([]); // Initialize as empty array
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
 
-  // Mock Data
-  const [evaluations, setEvaluations] = useState([
-    {
-      id: 1,
-      studentId: 1,
-      studentName: 'Ana Silva Santos',
-      instructorName: 'Sarah Costa Silva',
-      date: '2024-12-15',
-      type: 'Inicial',
-      weight: 65.5,
-      height: 1.68,
-      bmi: 23.2,
-      heartRate: 72,
-      bodyFat: 22.5,
-      muscleMass: 45.2,
-      measurements: { chest: 88, waist: 72, hip: 95, thigh: 58, arm: 28 },
-      flexibility: { shoulderFlexion: 170, spinalFlexion: 45, hipFlexion: 90, ankleFlexion: 15 },
-      strength: { core: 3, upperBody: 2, lowerBody: 4, grip: 25 },
-      anatomicalMarkers: [
-        { id: '1', x: 222, y: 540, type: 'pain', description: 'Dor no joelho esquerdo', bodyPart: 'Joelho' }
-      ],
-      objectives: 'Fortalecimento core',
-      treatmentPlan: 'Pilates clássico 2x semana',
-      createdAt: '2024-12-15T10:00:00Z'
-    },
-    {
-      id: 2,
-      studentId: 2,
-      studentName: 'Maria Santos Oliveira',
-      instructorName: 'Carla Mendes',
-      date: '2024-11-20',
-      type: 'Progresso',
-      weight: 58.0,
-      height: 1.62,
-      bmi: 22.1,
-      heartRate: 68,
-      measurements: { chest: 85, waist: 68, hip: 92, thigh: 55, arm: 26 },
-      flexibility: { shoulderFlexion: 175, spinalFlexion: 50, hipFlexion: 95, ankleFlexion: 20 },
-      strength: { core: 4, upperBody: 3, lowerBody: 4, grip: 28 },
-      anatomicalMarkers: [],
-      createdAt: '2024-11-20T14:00:00Z'
+  const fetchEvaluations = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/evaluations/physical');
+      setEvaluations(response.data.content); // Assuming the API returns a Page object
+    } catch (err) {
+      console.error('Error fetching physical evaluations:', err);
+      setError('Erro ao carregar avaliações físicas.');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchEvaluations();
+  }, []); // Empty dependency array means this effect runs once on mount
 
   const handleAddEvaluation = () => {
     setSelectedEvaluation(null);
@@ -80,25 +59,51 @@ const PhysicalEvaluation = ({ darkMode }: { darkMode?: boolean }) => {
     setActiveDropdown(null);
   };
 
-  const handleSaveEvaluation = (data: any) => {
-    if (editMode && selectedEvaluation) {
-      setEvaluations(prev => prev.map(e => e.id === selectedEvaluation.id ? { ...data, id: selectedEvaluation.id } : e));
-    } else {
-      setEvaluations(prev => [...prev, { ...data, id: Date.now() }]);
+  const handleSaveEvaluation = async (data: any) => {
+    try {
+      if (editMode && selectedEvaluation) {
+        await api.put(`/api/evaluations/physical/${selectedEvaluation.id}`, data);
+      } else {
+        await api.post('/api/evaluations/physical', data);
+      }
+      setShowForm(false);
+      fetchEvaluations(); // Refresh data
+    } catch (err) {
+      console.error('Error saving evaluation:', err);
     }
-    setShowForm(false);
   };
+
+  const handleDeleteEvaluation = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir esta avaliação?')) {
+      try {
+        await api.delete(`/api/evaluations/physical/${id}`);
+        fetchEvaluations(); // Refresh data
+        setActiveDropdown(null);
+      } catch (err) {
+        console.error('Error deleting evaluation:', err);
+        setError('Erro ao excluir avaliação.');
+      }
+    }
+  };
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen"><p>Carregando...</p></div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-screen"><p className="text-red-500">{error}</p></div>;
+  }
 
   const filteredEvaluations = evaluations.filter(e => 
     e.studentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (showForm) {
-    return <PhysicalEvaluationForm evaluation={selectedEvaluation} isEdit={editMode} onSave={handleSaveEvaluation} onCancel={() => setShowForm(false)} darkMode={darkMode} />;
+    return <PhysicalEvaluationForm evaluation={selectedEvaluation} isEdit={editMode} onSave={handleSaveEvaluation} onCancel={() => setShowForm(false)} />;
   }
 
   if (showDetails && selectedEvaluation) {
-    return <PhysicalEvaluationDetails evaluation={selectedEvaluation} onEdit={() => { setShowDetails(false); handleEditEvaluation(selectedEvaluation); }} onClose={() => setShowDetails(false)} darkMode={darkMode} />;
+    return <PhysicalEvaluationDetails evaluation={selectedEvaluation} onEdit={() => { setShowDetails(false); handleEditEvaluation(selectedEvaluation); }} onClose={() => setShowDetails(false)} />;
   }
 
   return (
@@ -222,7 +227,7 @@ const PhysicalEvaluation = ({ darkMode }: { darkMode?: boolean }) => {
                           <button onClick={() => handleEditEvaluation(evaluation)} className={`w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-2 ${darkMode ? 'hover:bg-white/5 text-gray-200' : 'hover:bg-gray-50 text-gray-700'}`}>
                             <Edit className="w-4 h-4" /> Editar
                           </button>
-                          <button className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
+                          <button onClick={() => handleDeleteEvaluation(evaluation.id)} className="w-full px-4 py-3 text-left text-sm font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
                             <Trash2 className="w-4 h-4" /> Excluir
                           </button>
                         </div>

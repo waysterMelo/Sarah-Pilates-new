@@ -18,6 +18,9 @@ import {
   Award,
   Target
 } from 'lucide-react';
+import api from '../src/services/api';
+
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface Schedule {
   id: number;
@@ -43,10 +46,10 @@ interface ScheduleFormProps {
   isEdit: boolean;
   onSave: (schedule: Omit<Schedule, 'id'>) => void;
   onCancel: () => void;
-  darkMode?: boolean;
 }
 
-const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, onCancel, darkMode }) => {
+const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, onCancel }) => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -54,6 +57,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
     studentName: '',
     instructorId: 0,
     instructorName: '',
+    classTypeId: 0, // Added classTypeId
     date: '',
     startTime: '',
     endTime: '',
@@ -70,29 +74,34 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newEquipment, setNewEquipment] = useState('');
 
-  // Mock data
-  const students = [
-    { id: 1, name: 'Ana Silva Santos', phone: '(11) 99999-1111' },
-    { id: 2, name: 'Maria Santos Oliveira', phone: '(11) 99999-2222' },
-    { id: 3, name: 'João Pedro Costa', phone: '(11) 99999-3333' },
-    { id: 4, name: 'Carlos Lima', phone: '(11) 99999-4444' },
-    { id: 5, name: 'Laura Ferreira', phone: '(11) 99999-5555' },
-  ];
+  // State for fetched data
+  const [students, setStudents] = useState<any[]>([]);
+  const [instructors, setInstructors] = useState<any[]>([]);
+  const [classTypes, setClassTypes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const instructors = [
-    { id: 1, name: 'Sarah Costa Silva', specialty: 'Pilates Clássico' },
-    { id: 2, name: 'Carla Mendes Santos', specialty: 'Pilates Terapêutico' },
-    { id: 3, name: 'Roberto Lima Oliveira', specialty: 'Pilates Contemporâneo' },
-  ];
-
-  const classTypes = [
-    { name: 'Pilates Solo', price: 80, duration: 60 },
-    { name: 'Pilates Aparelhos', price: 100, duration: 60 },
-    { name: 'Pilates Terapêutico', price: 90, duration: 60 },
-    { name: 'Personal Training', price: 120, duration: 50 },
-    { name: 'Pilates para Idosos', price: 70, duration: 50 },
-    { name: 'Pilates na Gravidez', price: 85, duration: 50 }
-  ];
+  // Fetch initial data for the form selects
+  useEffect(() => {
+    const fetchFormData = async () => {
+      try {
+        setLoading(true);
+        const [studentsRes, instructorsRes, classTypesRes] = await Promise.all([
+          api.get('/api/students', { params: { size: 100 } }),
+          api.get('/api/instructors', { params: { size: 100 } }),
+          api.get('/api/classtypes', { params: { size: 100 } })
+        ]);
+        setStudents(studentsRes.data.content);
+        setInstructors(instructorsRes.data.content);
+        setClassTypes(classTypesRes.data.content);
+      } catch (error) {
+        console.error("Failed to fetch form data", error);
+        // Handle error (e.g., show a toast message)
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFormData();
+  }, []);
 
   const rooms = [
     'Sala 1 - Mat',
@@ -233,14 +242,15 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
     }
   };
 
-  const handleTypeChange = (type: string) => {
-    const typeInfo = classTypes.find(t => t.name === type);
+  const handleTypeChange = (classTypeId: number) => {
+    const typeInfo = classTypes.find(t => t.id === classTypeId);
     if (typeInfo) {
-      handleInputChange('type', type);
+      handleInputChange('classTypeId', classTypeId);
+      handleInputChange('type', typeInfo.name);
       handleInputChange('price', typeInfo.price);
       
-      // Auto-calcular horário de fim
-      if (formData.startTime) {
+      // Auto-calculate end time based on duration
+      if (formData.startTime && typeInfo.duration) {
         const startTime = new Date(`2000-01-01T${formData.startTime}`);
         const endTime = new Date(startTime.getTime() + typeInfo.duration * 60000);
         handleInputChange('endTime', endTime.toTimeString().slice(0, 5));
@@ -276,6 +286,14 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
     };
     return colorMap[color] || colorMap.gray;
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Carregando dados do formulário...</p>
+      </div>
+    );
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -481,9 +499,9 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {classTypes.map((classType) => (
                   <button
-                    key={classType.name}
+                    key={classType.id}
                     type="button"
-                    onClick={() => handleTypeChange(classType.name)}
+                    onClick={() => handleTypeChange(classType.id)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                       formData.type === classType.name
                         ? 'bg-purple-500 text-white border-purple-500 shadow-lg'

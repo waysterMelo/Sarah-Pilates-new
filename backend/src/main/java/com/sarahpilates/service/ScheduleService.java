@@ -78,6 +78,11 @@ public class ScheduleService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public long countTodayClasses() {
+        return scheduleRepository.countByDate(LocalDate.now());
+    }
+
     @Transactional
     public ScheduleResponseDTO updateSchedule(Long id, ScheduleRequestDTO dto) {
         Schedule existingSchedule = scheduleRepository.findById(id)

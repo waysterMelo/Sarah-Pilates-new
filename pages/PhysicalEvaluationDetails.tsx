@@ -3,16 +3,17 @@ import {
   ArrowLeft, Edit, Calendar, Weight, Ruler, Activity, Target, Zap, Eye, Brain, Printer, ClipboardList, Layers, TrendingUp, ArrowRightLeft, FileDown
 } from 'lucide-react';
 import AnatomicalDiagram from '../components/AnatomicalDiagram';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface PhysicalEvaluationDetailsProps {
   evaluation: any;
   onEdit: () => void;
   onClose: () => void;
-  darkMode?: boolean;
 }
 
 // Componente Simples de Gráfico SVG
-const SimpleChart = ({ data, color = '#3b82f6', label, darkMode }: { data: number[], color?: string, label: string, darkMode?: boolean }) => {
+const SimpleChart = ({ data, color = '#3b82f6', label }: { data: number[], color?: string, label: string }) => {
+    const { darkMode } = useTheme();
     const max = Math.max(...data) * 1.2;
     const min = Math.min(...data) * 0.8;
     const height = 100;
@@ -47,9 +48,9 @@ const SimpleChart = ({ data, color = '#3b82f6', label, darkMode }: { data: numbe
 const PhysicalEvaluationDetails: React.FC<PhysicalEvaluationDetailsProps> = ({
   evaluation,
   onEdit,
-  onClose,
-  darkMode
+  onClose
 }) => {
+  const { darkMode } = useTheme();
   const [currentTab, setCurrentTab] = useState(0);
   const [comparisonMode, setComparisonMode] = useState(false);
 
@@ -191,7 +192,7 @@ const PhysicalEvaluationDetails: React.FC<PhysicalEvaluationDetailsProps> = ({
                 
                 <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100 shadow-sm'}`}>
                     <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Progresso Recente</h3>
-                    <SimpleChart data={historyData.weight} label="Evolução Peso (kg)" color="#10b981" darkMode={darkMode} />
+                    <SimpleChart data={historyData.weight} label="Evolução Peso (kg)" color="#10b981" />
                 </div>
             </div>
 
@@ -215,13 +216,13 @@ const PhysicalEvaluationDetails: React.FC<PhysicalEvaluationDetailsProps> = ({
         {tabs[currentTab].id === 'charts' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in">
                 <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'}`}>
-                    <SimpleChart data={historyData.weight} label="Peso (kg)" color="#3b82f6" darkMode={darkMode} />
+                    <SimpleChart data={historyData.weight} label="Peso (kg)" color="#3b82f6" />
                 </div>
                 <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'}`}>
-                    <SimpleChart data={historyData.strength} label="Força Core (0-5)" color="#ef4444" darkMode={darkMode} />
+                    <SimpleChart data={historyData.strength} label="Força Core (0-5)" color="#ef4444" />
                 </div>
                 <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/5' : 'bg-white border-gray-100'}`}>
-                    <SimpleChart data={historyData.flexibility} label="Flexibilidade Tornozelo (°)" color="#f59e0b" darkMode={darkMode} />
+                    <SimpleChart data={historyData.flexibility} label="Flexibilidade Tornozelo (°)" color="#f59e0b" />
                 </div>
             </div>
         )}

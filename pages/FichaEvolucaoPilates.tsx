@@ -14,9 +14,14 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import api from '../src/services/api';
+
+import { useTheme } from '../src/contexts/ThemeContext';
 
 interface FichaEvolucao {
   id: number;
+  studentId: number;
+  instructorId: number;
   nomePaciente: string;
   data: string;
   mes: string;
@@ -44,21 +49,22 @@ interface FichaEvolucaoPilatesProps {
   isEdit: boolean;
   onSave: (ficha: Omit<FichaEvolucao, 'id'>) => void;
   onCancel: () => void;
-  darkMode?: boolean;
 }
 
 const FichaEvolucaoPilates: React.FC<FichaEvolucaoPilatesProps> = ({ 
   ficha, 
   isEdit, 
   onSave, 
-  onCancel,
-  darkMode 
+  onCancel
 }) => {
+  const { darkMode } = useTheme();
   const aparelhos = ['CADILLAC', 'REFORMER', 'CHAIR', 'BARREL', 'MAT PILATES'];
   const locais = ['MMSS', 'MMII', 'Coluna Vertebral'];
   const tiposExercicio = ['alongamento', 'fortalecimento', 'coordenacao', 'equilibrio', 'core'];
 
   const [formData, setFormData] = useState({
+    studentId: 0,
+    instructorId: 0,
     nomePaciente: '',
     data: new Date().toISOString().split('T')[0],
     mes: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
@@ -73,6 +79,29 @@ const FichaEvolucaoPilates: React.FC<FichaEvolucaoPilatesProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [expandedApparatus, setExpandedApparatus] = useState<string | null>('MAT PILATES');
+  const [students, setStudents] = useState<any[]>([]);
+  const [instructors, setInstructors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch students and instructors
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const [studentsRes, instructorsRes] = await Promise.all([
+          api.get('/api/students', { params: { size: 100 } }),
+          api.get('/api/instructors', { params: { size: 100 } })
+        ]);
+        setStudents(studentsRes.data.content);
+        setInstructors(instructorsRes.data.content);
+      } catch (error) {
+        console.error("Failed to fetch initial data for form", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
   // Inicializar estado dos exercícios
   useEffect(() => {
@@ -125,7 +154,29 @@ const FichaEvolucaoPilates: React.FC<FichaEvolucaoPilatesProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      const exercisesPerformed = [];
+      for (const aparelho in formData.exercicios) {
+        for (const local in formData.exercicios[aparelho]) {
+          for (const tipo in formData.exercicios[aparelho][local]) {
+            if (formData.exercicios[aparelho][local][tipo]) {
+              exercisesPerformed.push(`${aparelho}: ${local} - ${tipo}`);
+            }
+          }
+        }
+      }
+      
+      const payload = {
+        ...formData,
+        exercisesPerformed,
+        // Remove fields not in the DTO
+        nomePaciente: undefined, 
+        mes: undefined,
+        exercicios: undefined,
+        fisioterapeuta: undefined,
+        crefito: undefined
+      };
+      
+      onSave(payload);
     }
   };
 
@@ -203,14 +254,19 @@ const FichaEvolucaoPilates: React.FC<FichaEvolucaoPilatesProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
                     <label className={labelClass}>Nome do Paciente</label>
-                    <input 
-                        type="text" 
-                        value={formData.nomePaciente} 
-                        onChange={(e) => handleInputChange('nomePaciente', e.target.value)} 
+                    <select
+                        value={formData.studentId}
+                        onChange={(e) => handleInputChange('studentId', parseInt(e.target.value, 10))}
                         className={inputClass}
-                        placeholder="Digite o nome..."
-                    />
-                    {errors.nomePaciente && <p className="text-red-500 text-sm mt-1">{errors.nomePaciente}</p>}
+                    >
+                        <option value={0} disabled>Selecione um aluno</option>
+                        {students.map(student => (
+                            <option key={student.id} value={student.id}>
+                                {student.name}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.studentId && <p className="text-red-500 text-sm mt-1">{errors.studentId}</p>}
                 </div>
                 <div>
                     <label className={labelClass}>Data</label>
@@ -315,29 +371,23 @@ const FichaEvolucaoPilates: React.FC<FichaEvolucaoPilatesProps> = ({
                         className={inputClass}
                     />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className={labelClass}>Fisioterapeuta</label>
-                        <input 
-                            type="text" 
-                            value={formData.fisioterapeuta} 
-                            onChange={(e) => handleInputChange('fisioterapeuta', e.target.value)} 
-                            className={inputClass}
-                        />
-                    </div>
-                    <div>
-                        <label className={labelClass}>CREFITO</label>
-                        <input 
-                            type="text" 
-                            value={formData.crefito} 
-                            onChange={(e) => handleInputChange('crefito', e.target.value)} 
-                            className={inputClass}
-                        />
-                    </div>
+                <div>
+                    <label className={labelClass}>Fisioterapeuta Responsável</label>
+                    <select
+                        value={formData.instructorId}
+                        onChange={(e) => handleInputChange('instructorId', parseInt(e.target.value, 10))}
+                        className={inputClass}
+                    >
+                        <option value={0} disabled>Selecione um fisioterapeuta</option>
+                        {instructors.map(instructor => (
+                            <option key={instructor.id} value={instructor.id}>
+                                {instructor.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
         </div>
-
       </form>
     </div>
   );

@@ -16,6 +16,7 @@ import {
   Stethoscope,
   Layers
 } from 'lucide-react';
+import { useTheme } from '../src/contexts/ThemeContext';
 import AnatomicalDiagram, { AnatomicalMarker } from '../components/AnatomicalDiagram';
 
 interface PhysicalEvaluationFormProps {
@@ -23,16 +24,15 @@ interface PhysicalEvaluationFormProps {
   isEdit?: boolean;
   onSave?: (data: any) => void;
   onCancel?: () => void;
-  darkMode?: boolean;
 }
 
 const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({ 
   evaluation, 
   isEdit, 
   onSave, 
-  onCancel,
-  darkMode 
+  onCancel
 }) => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);

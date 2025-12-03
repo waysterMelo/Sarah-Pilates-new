@@ -1,66 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../src/services/api';
 import {
-  ArrowLeft,
-  Calendar,
-  CreditCard,
-  FileText,
   Activity,
-  MapPin,
-  Mail,
-  Phone,
-  MoreHorizontal,
-  Download,
-  Share2,
-  Edit2,
-  CheckCircle2,
   AlertCircle,
-  Clock,
-  Camera,
-  File,
+  ArrowLeft,
   Cake,
-  Trash2
-} from 'lucide-react';
+  Camera,
+  Clock,
+  Download,
+  Edit2,
+  FileText,
+  Mail,
+  MapPin,
+  Phone, Trash2
+} from "lucide-react";
 
-interface StudentDetailsProps {
-  darkMode: boolean;
-}
+import { useTheme } from '../src/contexts/ThemeContext';
 
-const StudentDetails: React.FC<StudentDetailsProps> = ({ darkMode }) => {
+const StudentDetails: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'medical' | 'photos' | 'documents'>('overview');
+  const [student, setStudent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock fetch based on ID (Hardcoded for demo)
-  const student = {
-    id: id || '1',
-    name: 'Isabella Costa',
-    email: 'isa.costa@email.com',
-    phone: '(11) 99876-5432',
-    birthDate: '1995-12-15', // Month matches current month for demo
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    plan: 'Platinum Membership',
-    status: 'Ativo' as const,
-    joinDate: '12 Jan, 2023',
-    address: 'Rua Oscar Freire, 1234 - Jardins, SP',
-    medical: {
-        allergies: 'Nenhuma',
-        surgeries: 'Cesárea (2020)',
-        restrictions: 'Evitar impacto joelho direito',
-        medications: 'Vitamina D',
-        conditions: ['Condromalácia Patelar Grau 1']
-    },
-    documents: [
-        { name: 'Atestado_Cardiologista.pdf', date: '10/01/2024', type: 'PDF' },
-        { name: 'Contrato_Assinado.pdf', date: '12/01/2023', type: 'PDF' },
-        { name: 'Termo_Responsabilidade.pdf', date: '12/01/2023', type: 'PDF' }
-    ],
-    progressPhotos: [
-        { date: 'Jan 2024', urlBefore: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=300&q=80', urlAfter: 'https://images.unsplash.com/photo-1574680096141-1cddd32e04ca?auto=format&fit=crop&w=300&q=80' }
-    ]
-  };
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get(`/api/students/${id}`);
+        setStudent(data);
+      } catch (err) {
+        console.error("Failed to fetch student details", err);
+        setError("Não foi possível carregar os detalhes do aluno.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) {
+      fetchStudent();
+    }
+  }, [id]);
 
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen"><p>Carregando...</p></div>;
+  }
+
+  if (error || !student) {
+    return <div className="flex justify-center items-center h-screen"><p className="text-red-500">{error || "Aluno não encontrado."}</p></div>;
+  }
+  
   const isBirthdayMonth = new Date().getMonth() === new Date(student.birthDate).getMonth();
+  
+// ... (rest of component)
+
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },

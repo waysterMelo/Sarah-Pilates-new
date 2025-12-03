@@ -29,6 +29,8 @@ import {
   Settings
 } from 'lucide-react';
 
+import { useTheme } from '../src/contexts/ThemeContext';
+
 interface Schedule {
   id: number;
   studentId: number;
@@ -53,10 +55,10 @@ interface ScheduleDetailsProps {
   onEdit: () => void;
   onClose: () => void;
   onStatusChange: (scheduleId: number, newStatus: Schedule['status']) => void;
-  darkMode?: boolean;
 }
 
-const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ schedule, onEdit, onClose, onStatusChange, darkMode }) => {
+const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ schedule, onEdit, onClose, onStatusChange }) => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [showActions, setShowActions] = useState(false);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
 import {
   Plus,
   UserPlus,
@@ -10,11 +11,8 @@ import {
   Zap
 } from 'lucide-react';
 
-interface QuickActionsProps {
-  darkMode: boolean;
-}
-
-const QuickActions: React.FC<QuickActionsProps> = ({ darkMode }) => {
+const QuickActions: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
 
   const actions = [

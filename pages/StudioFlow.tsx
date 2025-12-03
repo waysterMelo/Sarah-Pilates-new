@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Filter, 
-  MoreHorizontal, 
-  Plus, 
-  User, 
-  ChevronLeft, 
+import React, { useState, useEffect } from 'react';
+import api from '../src/services/api';
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Filter,
+  MoreHorizontal,
+  Plus,
+  User,
+  ChevronLeft,
   ChevronRight,
   Layers,
   Zap
@@ -36,80 +37,57 @@ interface ClassSession {
 const StudioFlow: React.FC<StudioFlowProps> = ({ darkMode = false }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeFilter, setActiveFilter] = useState<'All' | 'Reformer' | 'Cadillac' | 'Mat'>('All');
+  const [classes, setClasses] = useState<ClassSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock Data representing a daily schedule
-  const classes: ClassSession[] = [
-    {
-      id: '1',
-      title: 'Flow Control',
-      instructor: 'Ana Silva',
-      startTime: '07:00',
-      endTime: '08:00',
-      level: 'Intermediário',
-      currentStudents: 4,
-      maxStudents: 5,
-      intensity: 75,
-      type: 'Reformer',
-      color: 'bg-purple-500',
-      attendees: ['https://picsum.photos/30/30?1', 'https://picsum.photos/30/30?2', 'https://picsum.photos/30/30?3', 'https://picsum.photos/30/30?4']
-    },
-    {
-      id: '2',
-      title: 'Power Pilates',
-      instructor: 'Carlos M.',
-      startTime: '08:00',
-      endTime: '09:00',
-      level: 'Avançado',
-      currentStudents: 3,
-      maxStudents: 3,
-      intensity: 90,
-      type: 'Cadillac',
-      color: 'bg-emerald-500',
-      attendees: ['https://picsum.photos/30/30?5', 'https://picsum.photos/30/30?6', 'https://picsum.photos/30/30?7']
-    },
-    {
-      id: '3',
-      title: 'Morning Stretch',
-      instructor: 'Julia R.',
-      startTime: '09:00',
-      endTime: '10:00',
-      level: 'Iniciante',
-      currentStudents: 8,
-      maxStudents: 10,
-      intensity: 40,
-      type: 'Mat',
-      color: 'bg-blue-500',
-      attendees: ['https://picsum.photos/30/30?8', 'https://picsum.photos/30/30?9', 'https://picsum.photos/30/30?10']
-    },
-    {
-      id: '4',
-      title: 'Reformer Essentials',
-      instructor: 'Ana Silva',
-      startTime: '10:00',
-      endTime: '11:00',
-      level: 'Iniciante',
-      currentStudents: 2,
-      maxStudents: 5,
-      intensity: 50,
-      type: 'Reformer',
-      color: 'bg-purple-500',
-      attendees: ['https://picsum.photos/30/30?11', 'https://picsum.photos/30/30?12']
-    },
-    {
-      id: '5',
-      title: 'Spine Corrector',
-      instructor: 'Pedro H.',
-      startTime: '11:30',
-      endTime: '12:30',
-      level: 'Intermediário',
-      currentStudents: 4,
-      maxStudents: 4,
-      intensity: 65,
-      type: 'Chair',
-      color: 'bg-orange-500',
-      attendees: ['https://picsum.photos/30/30?13', 'https://picsum.photos/30/30?14', 'https://picsum.photos/30/30?15', 'https://picsum.photos/30/30?16']
-    }
-  ];
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      setLoading(true);
+      try {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const response = await api.get('/api/schedules', {
+          params: {
+            startDate: dateStr,
+            endDate: dateStr,
+            size: 100 // Get all schedules for the day
+          }
+        });
+        
+        // Map API response to the ClassSession interface
+        const mappedClasses = response.data.content.map((s: any) => ({
+          id: s.id.toString(),
+          title: s.classType.name,
+          instructor: s.instructor.name,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          level: 'Intermediário', // This field is not in the DTO, using a default
+          currentStudents: 1, // This is not in the DTO, using a default
+          maxStudents: s.classType.capacity,
+          intensity: 75, // This is not in the DTO, using a default
+          type: s.classType.name.includes('Reformer') ? 'Reformer' : 
+                s.classType.name.includes('Cadillac') ? 'Cadillac' : 
+                s.classType.name.includes('Chair') ? 'Chair' : 'Mat',
+          color: s.classType.color || 'bg-gray-500',
+          attendees: [] // This is not in the DTO
+        }));
+        setClasses(mappedClasses);
+
+      } catch (err) {
+        console.error("Failed to fetch studio flow data", err);
+        setError("Não foi possível carregar o fluxo do estúdio.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, [selectedDate]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [classes, setClasses] = useState<ClassSession[]>([]);
 
   const equipmentZones = [
     { id: 'Reformer', label: 'Reformer Zone', icon: Layers, color: 'text-purple-500' },

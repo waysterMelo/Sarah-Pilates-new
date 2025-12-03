@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '../src/contexts/ThemeContext';
 import { 
   ArrowLeft, 
   Edit, 
@@ -39,15 +40,14 @@ interface FichaEvolucaoDetailsProps {
   ficha: FichaEvolucao;
   onEdit: () => void;
   onClose: () => void;
-  darkMode?: boolean;
 }
 
 const FichaEvolucaoDetails: React.FC<FichaEvolucaoDetailsProps> = ({ 
   ficha, 
   onEdit, 
-  onClose,
-  darkMode 
+  onClose
 }) => {
+  const { darkMode } = useTheme();
   const [activeTab, setActiveTab] = useState<'resumo' | 'exercicios'>('resumo');
   const aparelhos = ['CADILLAC', 'REFORMER', 'CHAIR', 'BARREL', 'MAT PILATES'];
   const locais = ['MMSS', 'MMII', 'Coluna Vertebral'];

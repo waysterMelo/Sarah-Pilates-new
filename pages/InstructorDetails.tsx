@@ -22,9 +22,30 @@ import {
   XCircle
 } from 'lucide-react';
 
-interface InstructorDetailsProps {
-  darkMode: boolean;
-}
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTheme } from '../src/contexts/ThemeContext';
+import {
+  ArrowLeft,
+  Calendar,
+  CreditCard,
+  FileText,
+  Activity,
+  MapPin,
+  Mail,
+  Phone,
+  Download,
+  Share2,
+  Edit2,
+  Clock,
+  Award,
+  Star,
+  Users,
+  TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+  XCircle
+} from 'lucide-react';
 
 // Mock Data Structure
 interface WorkingHours {
@@ -33,7 +54,8 @@ interface WorkingHours {
   available: boolean;
 }
 
-const InstructorDetails: React.FC<InstructorDetailsProps> = ({ darkMode }) => {
+const InstructorDetails: React.FC = () => {
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'schedule' | 'financial'>('overview');
