@@ -1,1 +1,9 @@
-por exemplo na gestao de alunos esta aparecendo uma lista de alunos , que nao estao cadastrados , esses alunos devem ser retornados do banco de dados
+pagina inicial do ssitema agora :
+
+Welcome to nginx!
+If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+
+For online documentation and support please refer to nginx.org.
+Commercial support is available at nginx.com.
+
+Thank you for using nginx.

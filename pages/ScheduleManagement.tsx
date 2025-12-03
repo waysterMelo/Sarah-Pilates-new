@@ -24,7 +24,7 @@ import api from '../src/services/api';
 import ScheduleForm from './ScheduleForm';
 import ScheduleDetails from './ScheduleDetails';
 
-import {useTheme} from '../src/contexts/ThemeContext';
+import {useTheme} from "../src/contexts/ThemeContext";
 
 interface Schedule {
   id: number;

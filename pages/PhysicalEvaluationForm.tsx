@@ -1,23 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Save, 
-  User, 
-  Ruler, 
-  Activity, 
-  Target, 
-  Zap, 
-  Brain, 
-  ChevronRight, 
-  Eye,
-  Move,
-  ClipboardList,
-  Stethoscope,
-  Layers
-} from 'lucide-react';
-import { useTheme } from '../src/contexts/ThemeContext';
-import AnatomicalDiagram, { AnatomicalMarker } from '../components/AnatomicalDiagram';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {ArrowLeft, Brain, ChevronRight, ClipboardList, Layers, Move, Ruler, Save, User, Zap} from 'lucide-react';
+import {useTheme} from '../src/contexts/ThemeContext';
+import AnatomicalDiagram, {AnatomicalMarker} from '../components/AnatomicalDiagram';
+import api from "@/services/api";
 
 interface PhysicalEvaluationFormProps {
   evaluation?: any;
@@ -93,18 +79,10 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Mock data
-  const students = [
-    { id: 1, name: 'Ana Silva Santos' },
-    { id: 2, name: 'Maria Santos Oliveira' },
-    { id: 3, name: 'João Pedro Costa' },
-  ];
-
-  const instructors = [
-    { id: 1, name: 'Sarah Costa Silva' },
-    { id: 2, name: 'Carla Mendes Santos' },
-    { id: 3, name: 'Roberto Lima Oliveira' },
-  ];
+  const [apiStudents, setApiStudents] = useState<any[]>([]);
+  const [apiInstructors, setApiInstructors] = useState<any[]>([]);
+  const [loadingInitialData, setLoadingInitialData] = useState(true);
+  const [errorInitialData, setErrorInitialData] = useState<string | null>(null);
 
   const steps = [
     { id: 0, title: 'Info. Básicas', icon: User, color: 'from-blue-500 to-blue-600', description: 'Dados do aluno e instrutor' },
@@ -115,6 +93,26 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
     { id: 5, title: 'Equilíbrio & Postura', icon: Move, color: 'from-cyan-500 to-cyan-600', description: 'Estabilidade e análise visual' },
     { id: 6, title: 'Plano & Conclusão', icon: Brain, color: 'from-gray-500 to-gray-600', description: 'Planejamento terapêutico' },
   ];
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoadingInitialData(true);
+        const [studentsRes, instructorsRes] = await Promise.all([
+          api.get('/api/students', { params: { size: 100 } }),
+          api.get('/api/instructors', { params: { size: 100 } })
+        ]);
+        setApiStudents(studentsRes.data.content);
+        setApiInstructors(instructorsRes.data.content);
+      } catch (err) {
+        console.error("Failed to fetch initial data for form", err);
+        setErrorInitialData('Falha ao carregar alunos e instrutores.');
+      } finally {
+        setLoadingInitialData(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
   useEffect(() => {
     if (formData.weight > 0 && formData.height > 0) {
@@ -138,7 +136,19 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
   }, [isEdit, evaluation]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      let newState = { ...prev, [field]: value };
+
+      if (field === 'studentId') {
+        const selectedStudent = apiStudents.find(s => s.id === value);
+        newState = { ...newState, studentName: selectedStudent ? selectedStudent.name : '' };
+      } else if (field === 'instructorId') {
+        const selectedInstructor = apiInstructors.find(i => i.id === value);
+        newState = { ...newState, instructorName: selectedInstructor ? selectedInstructor.name : '' };
+      }
+      
+      return newState;
+    });
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
@@ -263,7 +273,7 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
                   <label className={labelClass}>Aluno</label>
                   <select value={formData.studentId} onChange={(e) => handleInputChange('studentId', Number(e.target.value))} className={inputClass}>
                     <option value={0}>Selecione...</option>
-                    {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    {apiStudents.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                   {errors.studentId && <p className="text-red-500 text-sm mt-1">{errors.studentId}</p>}
                 </div>
@@ -271,7 +281,7 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
                   <label className={labelClass}>Instrutor</label>
                   <select value={formData.instructorId} onChange={(e) => handleInputChange('instructorId', Number(e.target.value))} className={inputClass}>
                     <option value={0}>Selecione...</option>
-                    {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                    {apiInstructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                   </select>
                 </div>
                 <div>

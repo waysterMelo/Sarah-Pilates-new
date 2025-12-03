@@ -24,6 +24,7 @@ import {
   Loader
 } from 'lucide-react';
 import { useTheme } from '../src/contexts/ThemeContext';
+import api from "../src/services/api";
 
 interface Student {
   id: number;
