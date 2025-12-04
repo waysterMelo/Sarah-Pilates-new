@@ -26,10 +26,15 @@ const PhysicalEvaluation: React.FC = () => {
   const fetchEvaluations = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Buscando lista de Avaliações Físicas...');
       const response = await api.get('/api/evaluations/physical');
+      console.log('✅ Dados recebidos:', response.data);
       setEvaluations(response.data.content); // Assuming the API returns a Page object
-    } catch (err) {
-      console.error('Error fetching physical evaluations:', err);
+    } catch (err: any) {
+      console.error('❌ Falha ao buscar lista:', err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
       setError('Erro ao carregar avaliações físicas.');
     } finally {
       setLoading(false);
@@ -60,28 +65,50 @@ const PhysicalEvaluation: React.FC = () => {
   };
 
   const handleSaveEvaluation = async (data: any) => {
+    console.group('🚀 Tentativa de Salvar: Avaliação Física');
+    console.log('Payload enviado:', data);
+
     try {
       if (editMode && selectedEvaluation) {
         await api.put(`/api/evaluations/physical/${selectedEvaluation.id}`, data);
+        console.log('✅ Sucesso ao editar!');
       } else {
         await api.post('/api/evaluations/physical', data);
+        console.log('✅ Sucesso ao criar!');
       }
       setShowForm(false);
       fetchEvaluations(); // Refresh data
-    } catch (err) {
-      console.error('Error saving evaluation:', err);
+    } catch (err: any) {
+      console.error('❌ Erro ao salvar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
+      }
+      setError('Erro ao salvar avaliação.');
+    } finally {
+      console.groupEnd();
     }
   };
 
   const handleDeleteEvaluation = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir esta avaliação?')) {
+      console.group(`🚀 Tentativa de Deletar: Avaliação Física #${id}`);
+      console.log('ID para deletar:', id);
+
       try {
         await api.delete(`/api/evaluations/physical/${id}`);
+        console.log('✅ Sucesso ao deletar!');
         fetchEvaluations(); // Refresh data
         setActiveDropdown(null);
-      } catch (err) {
-        console.error('Error deleting evaluation:', err);
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
+        }
         setError('Erro ao excluir avaliação.');
+      } finally {
+        console.groupEnd();
       }
     }
   };

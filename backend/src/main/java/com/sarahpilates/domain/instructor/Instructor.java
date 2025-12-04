@@ -48,13 +48,24 @@ public class Instructor implements UserDetails {
     private LocalDate birthDate;
     private String address;
 
+    private String emergencyContact;
+    private String emergencyPhone;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "instructor_specialties", joinColumns = @JoinColumn(name = "instructor_id"))
     @Column(name = "specialty")
     private List<String> specialties;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "instructor_certifications", joinColumns = @JoinColumn(name = "instructor_id"))
+    @Column(name = "certification")
+    private List<String> certifications;
     
     @Column(columnDefinition = "TEXT")
     private String bio;
+
+    @Column(columnDefinition = "TEXT")
+    private String experience;
 
     @Enumerated(EnumType.STRING)
     private InstructorStatus status;

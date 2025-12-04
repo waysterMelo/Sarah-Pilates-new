@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-01T23:16:43-0300",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
+    date = "2025-12-03T18:00:50-0300",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.44.0.v20251118-1623, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
 public class InstructorMapperImpl implements InstructorMapper {
@@ -38,11 +38,18 @@ public class InstructorMapperImpl implements InstructorMapper {
         instructor.setPhone( dto.phone() );
         instructor.setBirthDate( dto.birthDate() );
         instructor.setAddress( dto.address() );
+        instructor.setEmergencyContact( dto.emergencyContact() );
+        instructor.setEmergencyPhone( dto.emergencyPhone() );
         List<String> list = dto.specialties();
         if ( list != null ) {
             instructor.setSpecialties( new ArrayList<String>( list ) );
         }
+        List<String> list1 = dto.certifications();
+        if ( list1 != null ) {
+            instructor.setCertifications( new ArrayList<String>( list1 ) );
+        }
         instructor.setBio( dto.bio() );
+        instructor.setExperience( dto.experience() );
         instructor.setStatus( dto.status() );
         instructor.setHireDate( dto.hireDate() );
         instructor.setHourlyRate( dto.hourlyRate() );
@@ -64,8 +71,12 @@ public class InstructorMapperImpl implements InstructorMapper {
         String phone = null;
         LocalDate birthDate = null;
         String address = null;
+        String emergencyContact = null;
+        String emergencyPhone = null;
         List<String> specialties = null;
+        List<String> certifications = null;
         String bio = null;
+        String experience = null;
         InstructorStatus status = null;
         LocalDate hireDate = null;
         BigDecimal hourlyRate = null;
@@ -78,17 +89,24 @@ public class InstructorMapperImpl implements InstructorMapper {
         phone = entity.getPhone();
         birthDate = entity.getBirthDate();
         address = entity.getAddress();
+        emergencyContact = entity.getEmergencyContact();
+        emergencyPhone = entity.getEmergencyPhone();
         List<String> list = entity.getSpecialties();
         if ( list != null ) {
             specialties = new ArrayList<String>( list );
         }
+        List<String> list1 = entity.getCertifications();
+        if ( list1 != null ) {
+            certifications = new ArrayList<String>( list1 );
+        }
         bio = entity.getBio();
+        experience = entity.getExperience();
         status = entity.getStatus();
         hireDate = entity.getHireDate();
         hourlyRate = entity.getHourlyRate();
         workingHours = toWorkingHoursDtoList( entity.getWorkingHours() );
 
-        InstructorResponseDTO instructorResponseDTO = new InstructorResponseDTO( id, name, email, role, phone, birthDate, address, specialties, bio, status, hireDate, hourlyRate, workingHours );
+        InstructorResponseDTO instructorResponseDTO = new InstructorResponseDTO( id, name, email, role, phone, birthDate, address, emergencyContact, emergencyPhone, specialties, certifications, bio, experience, status, hireDate, hourlyRate, workingHours );
 
         return instructorResponseDTO;
     }
@@ -105,6 +123,8 @@ public class InstructorMapperImpl implements InstructorMapper {
         entity.setPhone( dto.phone() );
         entity.setBirthDate( dto.birthDate() );
         entity.setAddress( dto.address() );
+        entity.setEmergencyContact( dto.emergencyContact() );
+        entity.setEmergencyPhone( dto.emergencyPhone() );
         if ( entity.getSpecialties() != null ) {
             List<String> list = dto.specialties();
             if ( list != null ) {
@@ -121,24 +141,41 @@ public class InstructorMapperImpl implements InstructorMapper {
                 entity.setSpecialties( new ArrayList<String>( list ) );
             }
         }
+        if ( entity.getCertifications() != null ) {
+            List<String> list1 = dto.certifications();
+            if ( list1 != null ) {
+                entity.getCertifications().clear();
+                entity.getCertifications().addAll( list1 );
+            }
+            else {
+                entity.setCertifications( null );
+            }
+        }
+        else {
+            List<String> list1 = dto.certifications();
+            if ( list1 != null ) {
+                entity.setCertifications( new ArrayList<String>( list1 ) );
+            }
+        }
         entity.setBio( dto.bio() );
+        entity.setExperience( dto.experience() );
         entity.setStatus( dto.status() );
         entity.setHireDate( dto.hireDate() );
         entity.setHourlyRate( dto.hourlyRate() );
         if ( entity.getWorkingHours() != null ) {
-            List<WorkingHours> list1 = toWorkingHoursList( dto.workingHours() );
-            if ( list1 != null ) {
+            List<WorkingHours> list2 = toWorkingHoursList( dto.workingHours() );
+            if ( list2 != null ) {
                 entity.getWorkingHours().clear();
-                entity.getWorkingHours().addAll( list1 );
+                entity.getWorkingHours().addAll( list2 );
             }
             else {
                 entity.setWorkingHours( null );
             }
         }
         else {
-            List<WorkingHours> list1 = toWorkingHoursList( dto.workingHours() );
-            if ( list1 != null ) {
-                entity.setWorkingHours( list1 );
+            List<WorkingHours> list2 = toWorkingHoursList( dto.workingHours() );
+            if ( list2 != null ) {
+                entity.setWorkingHours( list2 );
             }
         }
     }

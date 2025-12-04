@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../src/services/api';
-import {
-  ArrowLeft,
-  Save,
-  Dumbbell,
-  Clock,
-  DollarSign,
-  Users,
-  Zap,
-  FileText,
-  CheckCircle2,
-  Palette,
-  Plus,
-  X
-} from 'lucide-react';
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import api from '../src/services/api';
 import { useTheme } from '../src/contexts/ThemeContext';
 import {
   ArrowLeft,
@@ -72,11 +54,16 @@ const ClassForm: React.FC = () => {
         setFormData(location.state.classData);
       } else {
         const fetchClassType = async () => {
+          console.log(`🔄 Buscando dados da Modalidade #${id}...`);
           try {
             const { data } = await api.get(`/api/classtypes/${id}`);
+            console.log('✅ Dados recebidos:', data);
             setFormData(data);
-          } catch (error) {
-            console.error("Failed to fetch class type", error);
+          } catch (error: any) {
+            console.error("❌ Falha ao buscar modalidade:", error);
+            if (error.response) {
+              console.error('Detalhes do erro:', error.response.data);
+            }
             navigate('/classes');
           }
         };
@@ -99,16 +86,26 @@ const ClassForm: React.FC = () => {
       intensity: intensityMap[formData.intensity as keyof typeof intensityMap] || 'MEDIA',
     };
 
+    console.group('🚀 Tentativa de Salvar: Modalidade');
+    console.log('Payload enviado:', payload);
+
     try {
       if (isEdit) {
         await api.put(`/api/classtypes/${id}`, payload);
+        console.log('✅ Sucesso ao editar!');
       } else {
         await api.post('/api/classtypes', payload);
+        console.log('✅ Sucesso ao criar!');
       }
       navigate('/classes');
-    } catch (error) {
-      console.error('Failed to save class type', error);
-      // Handle and show error to user
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar:', error);
+      if (error.response) {
+        console.error('Status:', error.response.status);
+        console.error('Dados do Erro (Backend):', error.response.data);
+      }
+    } finally {
+      console.groupEnd();
     }
   };
 

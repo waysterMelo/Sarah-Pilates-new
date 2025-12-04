@@ -27,6 +27,13 @@ public class InstructorService {
 
     @Transactional
     public InstructorResponseDTO createInstructor(InstructorRequestDTO instructorDTO) {
+        if (instructorRepository.existsByEmail(instructorDTO.email())) {
+            throw new IllegalArgumentException("Email already in use");
+        }
+        if (StringUtils.hasText(instructorDTO.emergencyContact()) && !StringUtils.hasText(instructorDTO.emergencyPhone())) {
+            throw new IllegalArgumentException("Emergency phone must be provided if emergency contact is present.");
+        }
+
         Instructor instructor = instructorMapper.toEntity(instructorDTO);
         instructor.setPassword(passwordEncoder.encode(instructorDTO.password()));
         if (instructor.getWorkingHours() != null) {
@@ -53,6 +60,18 @@ public class InstructorService {
     public InstructorResponseDTO updateInstructor(Long id, InstructorRequestDTO dto) {
         Instructor existingInstructor = instructorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Instructor not found with id: " + id));
+
+        // Custom validation for emergency contact
+        if (StringUtils.hasText(dto.emergencyContact()) && !StringUtils.hasText(dto.emergencyPhone())) {
+            throw new IllegalArgumentException("Emergency phone must be provided if emergency contact is present.");
+        }
+        
+        // Check for email uniqueness if it's being changed
+        if (dto.email() != null && !dto.email().equals(existingInstructor.getEmail())) {
+            if(instructorRepository.existsByEmail(dto.email())) {
+                throw new IllegalArgumentException("Email already in use");
+            }
+        }
 
         // Use the mapper to update basic fields
         instructorMapper.updateEntityFromDto(dto, existingInstructor);

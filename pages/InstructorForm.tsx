@@ -105,29 +105,33 @@ const InstructorForm: React.FC = () => {
   useEffect(() => {
     if (isEdit && id) {
       const fetchInstructor = async () => {
+        console.log(`🔄 Buscando dados do Instrutor #${id}...`);
         try {
           const { data } = await api.get(`/api/instructors/${id}`);
-          // Note: The DTO from backend might not match the form state structure exactly.
-          // A mapping/adapter function would be ideal here in a real-world app.
+          console.log('✅ Dados recebidos:', data);
           setFormData(prev => ({
             ...prev,
             name: data.name,
             email: data.email,
             phone: data.phone || '',
-            status: data.status,
+            status: data.status ? data.status.charAt(0).toUpperCase() + data.status.slice(1).toLowerCase().replace('FERIAS', 'Férias') : 'Inativo',
             specialties: data.specialties || [],
+            certifications: data.certifications || [],
+            experience: data.experience || '',
+            emergencyContact: data.emergencyContact || '',
+            emergencyPhone: data.emergencyPhone || '',
             hourlyRate: data.hourlyRate || 0,
             birthDate: data.birthDate || '',
             address: data.address || '',
             bio: data.bio || '',
             hireDate: data.hireDate || new Date().toISOString().split('T')[0],
-            // Assuming workingHours comes in a format that needs to be adapted
-            // This is a placeholder, as the backend DTO might be different
             workingHours: data.workingHours ? adaptWorkingHoursToForm(data.workingHours) : prev.workingHours,
           }));
-        } catch (error) {
-          console.error("Failed to fetch instructor", error);
-          // Handle error, e.g., show a notification and navigate back
+        } catch (error: any) {
+          console.error("❌ Falha ao buscar instrutor:", error);
+          if (error.response) {
+            console.error('Detalhes do erro:', error.response.data);
+          }
           navigate('/instructors');
         }
       };
@@ -135,14 +139,37 @@ const InstructorForm: React.FC = () => {
     }
   }, [isEdit, id, navigate]);
 
-  // Helper function to adapt backend working hours to form state
+  const convertStatus = (status: 'Ativo' | 'Inativo' | 'Férias'): 'ATIVO' | 'INATIVO' | 'FERIAS' => {
+    switch (status) {
+      case 'Ativo': return 'ATIVO';
+      case 'Inativo': return 'INATIVO';
+      case 'Férias': return 'FERIAS';
+      default: return 'ATIVO';
+    }
+  };
+
   const adaptWorkingHoursToForm = (hoursFromBackend: any[]) => {
-    const hours = { ...formData.workingHours }; // Start with default
+    const defaultHours = {
+      monday: { start: '08:00', end: '18:00', available: false },
+      tuesday: { start: '08:00', end: '18:00', available: false },
+      wednesday: { start: '08:00', end: '18:00', available: false },
+      thursday: { start: '08:00', end: '18:00', available: false },
+      friday: { start: '08:00', end: '18:00', available: false },
+      saturday: { start: '08:00', end: '12:00', available: false },
+      sunday: { start: '08:00', end: '12:00', available: false }
+    };
+
     hoursFromBackend.forEach(h => {
       const dayKey = h.dayOfWeek.toLowerCase();
-      hours[dayKey] = { start: h.startTime, end: h.endTime, available: true };
+      if (defaultHours[dayKey]) {
+        defaultHours[dayKey] = {
+          start: h.startTime.substring(0, 5), // Remove seconds
+          end: h.endTime.substring(0, 5),     // Remove seconds
+          available: true
+        };
+      }
     });
-    return hours;
+    return defaultHours;
   };
 
 
@@ -152,6 +179,9 @@ const InstructorForm: React.FC = () => {
       if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
       if (!formData.email.trim()) newErrors.email = 'Email é obrigatório';
       if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
+      if (formData.emergencyContact && !formData.emergencyPhone) {
+        newErrors.emergencyPhone = 'Telefone de emergência é obrigatório.';
+      }
     }
     if (step === 2) {
       if (formData.hourlyRate <= 0) newErrors.hourlyRate = 'Valor inválido';
@@ -169,37 +199,51 @@ const InstructorForm: React.FC = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  // Helper function to adapt form working hours to backend DTO
-  const adaptWorkingHoursToDTO = (hoursFromForm: { [key: string]: WorkingHours }) => {
-    return Object.entries(hoursFromForm).map(([day, times]) => ({
-      dayOfWeek: day.toUpperCase(), // MONDAY, TUESDAY, etc.
-      startTime: times.start,
-      endTime: times.end,
-      isAvailable: times.available,
-    }));
+  const convertWorkingHoursToDTO = (hoursFromForm: { [key: string]: WorkingHours }) => {
+    return Object.entries(hoursFromForm)
+      .filter(([, times]) => times.available)
+      .map(([day, times]) => ({
+        dayOfWeek: day.toUpperCase(),
+        startTime: `${times.start}:00`,
+        endTime: `${times.end}:00`,
+      }));
   };
 
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
-      // Create a password for new instructors, as it's required by the backend
-      // In a real app, this should be handled more securely.
       const payload = {
         ...formData,
-        password: 'password123', // Default password for new users
-        role: 'INSTRUCTOR', // Default role
-        workingHours: adaptWorkingHoursToDTO(formData.workingHours)
+        status: convertStatus(formData.status),
+        role: 'ROLE_INSTRUCTOR',
+        workingHours: convertWorkingHoursToDTO(formData.workingHours),
+        password: !isEdit ? 'password123' : undefined, // Only send password on create
       };
+
+      // Remove password from payload if it's not being set
+      if (isEdit) {
+        delete payload.password;
+      }
+
+      console.group('🚀 Tentativa de Salvar: Instrutor');
+      console.log('Payload enviado:', payload);
 
       try {
         if (isEdit) {
           await api.put(`/api/instructors/${id}`, payload);
+          console.log('✅ Sucesso ao editar!');
         } else {
           await api.post('/api/instructors', payload);
+          console.log('✅ Sucesso ao criar!');
         }
         navigate('/instructors');
-      } catch (error) {
-        console.error('Failed to save instructor', error);
-        // Here you could set an error state to display a message to the user
+      } catch (error: any) {
+        console.error('❌ Erro ao salvar:', error);
+        if (error.response) {
+          console.error('Status:', error.response.status);
+          console.error('Dados do Erro (Backend):', error.response.data);
+        }
+      } finally {
+        console.groupEnd();
       }
     }
   };
@@ -367,6 +411,27 @@ const InstructorForm: React.FC = () => {
                              placeholder="Rua, Número, Bairro..."
                           />
                        </div>
+                       <div>
+                          <label className={labelClass}>Contato de Emergência</label>
+                          <input
+                             type="text"
+                             value={formData.emergencyContact}
+                             onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                             className={inputClass}
+                             placeholder="Nome do contato"
+                          />
+                       </div>
+                       <div>
+                          <label className={labelClass}>Telefone de Emergência</label>
+                          <input
+                             type="tel"
+                             value={formData.emergencyPhone}
+                             onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                             className={`${inputClass} ${errors.emergencyPhone ? 'border-red-500' : ''}`}
+                             placeholder="(00) 00000-0000"
+                          />
+                          {errors.emergencyPhone && <p className="text-red-500 text-xs mt-1">{errors.emergencyPhone}</p>}
+                       </div>
                     </div>
                  </div>
               )}
@@ -435,6 +500,39 @@ const InstructorForm: React.FC = () => {
                                    if(newSpecialty) {
                                       handleInputChange('specialties', [...formData.specialties, newSpecialty]);
                                       setNewSpecialty('');
+                                   }
+                                }}
+                                className="px-4 rounded-xl bg-primary-600 text-white hover:bg-primary-700"
+                             >
+                                <Plus className="w-5 h-5" />
+                             </button>
+                          </div>
+                       </div>
+                       <div className="md:col-span-2">
+                          <label className={labelClass}>Certificações</label>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {formData.certifications.map((cert, index) => (
+                                <div key={index} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border ${darkMode ? 'bg-white/10 border-white/20' : 'bg-gray-100 border-gray-200'}`}>
+                                    <span>{cert}</span>
+                                    <button onClick={() => handleInputChange('certifications', formData.certifications.filter((_, i) => i !== index))} className="text-red-500 hover:text-red-400">
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                             <input 
+                                type="text" 
+                                value={newCertification}
+                                onChange={(e) => setNewCertification(e.target.value)}
+                                className={inputClass} 
+                                placeholder="Nova certificação..." 
+                             />
+                             <button 
+                                onClick={() => {
+                                   if(newCertification) {
+                                      handleInputChange('certifications', [...formData.certifications, newCertification]);
+                                      setNewCertification('');
                                    }
                                 }}
                                 className="px-4 rounded-xl bg-primary-600 text-white hover:bg-primary-700"

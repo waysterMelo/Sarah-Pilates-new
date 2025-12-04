@@ -49,9 +49,17 @@ const Students: React.FC = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Buscando lista de Alunos...');
+      
       const response = await api.get('/api/students');
+      
+      console.log('✅ Dados recebidos:', response.data);
       setStudents(response.data.content);
-    } catch (err) {
+    } catch (err: any) {
+      console.error('❌ Falha ao buscar lista:', err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
       setError('Falha ao buscar alunos.');
     } finally {
       setLoading(false);
@@ -64,12 +72,21 @@ const Students: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
+      console.group(`🚀 Tentativa de Deletar: Aluno #${id}`);
+      console.log('ID para deletar:', id);
       try {
         await api.delete(`/api/students/${id}`);
+        console.log('✅ Sucesso ao deletar!');
         fetchStudents();
-      } catch (err) {
-        console.error('Failed to delete student', err);
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
+        }
         setError('Falha ao excluir aluno.');
+      } finally {
+        console.groupEnd();
       }
     }
   };

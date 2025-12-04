@@ -63,9 +63,17 @@ const Classes: React.FC = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Buscando lista de Modalidades...');
+      
       const response = await api.get('/api/classtypes');
+      
+      console.log('✅ Dados recebidos:', response.data);
       setClasses(response.data.content);
-    } catch (err) {
+    } catch (err: any) {
+      console.error('❌ Falha ao buscar lista:', err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
       setError('Falha ao buscar modalidades.');
     } finally {
       setLoading(false);
@@ -78,12 +86,21 @@ const Classes: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja arquivar esta modalidade?')) {
+      console.group(`🚀 Tentativa de Deletar: Modalidade #${id}`);
+      console.log('ID para deletar:', id);
       try {
         await api.delete(`/api/classtypes/${id}`);
+        console.log('✅ Sucesso ao deletar!');
         fetchClasses(); // Refresh data
-      } catch (err) {
-        console.error('Failed to delete class type', err);
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
+        }
         setError('Falha ao arquivar modalidade.');
+      } finally {
+        console.groupEnd();
       }
     }
     setActiveDropdown(null);

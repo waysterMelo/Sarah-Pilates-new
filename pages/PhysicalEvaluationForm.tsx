@@ -96,16 +96,22 @@ const PhysicalEvaluationForm: React.FC<PhysicalEvaluationFormProps> = ({
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      console.log('🔄 Buscando dados iniciais para o formulário de Avaliação Física (alunos e instrutores)...');
       try {
         setLoadingInitialData(true);
         const [studentsRes, instructorsRes] = await Promise.all([
           api.get('/api/students', { params: { size: 100 } }),
           api.get('/api/instructors', { params: { size: 100 } })
         ]);
+        console.log('✅ Dados de alunos recebidos:', studentsRes.data.content);
+        console.log('✅ Dados de instrutores recebidos:', instructorsRes.data.content);
         setApiStudents(studentsRes.data.content);
         setApiInstructors(instructorsRes.data.content);
-      } catch (err) {
-        console.error("Failed to fetch initial data for form", err);
+      } catch (err: any) {
+        console.error("❌ Falha ao buscar dados iniciais para o formulário:", err);
+        if (err.response) {
+          console.error('Detalhes do erro:', err.response.data);
+        }
         setErrorInitialData('Falha ao carregar alunos e instrutores.');
       } finally {
         setLoadingInitialData(false);

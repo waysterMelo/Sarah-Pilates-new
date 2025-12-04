@@ -79,10 +79,15 @@ const ScheduleManagement: React.FC = () => {
         // Adjust if performance becomes an issue.
         size: 1000 // Fetch up to 1000 schedules for the given range
       };
+      console.log('🔄 Buscando lista de Agendamentos...', params);
       const response = await api.get('/api/schedules', { params });
+      console.log('✅ Dados recebidos:', response.data);
       setSchedules(response.data.content);
-    } catch (err) {
-      console.error("Failed to fetch schedules", err);
+    } catch (err: any) {
+      console.error("❌ Falha ao buscar lista:", err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
       setError("Não foi possível carregar os agendamentos.");
     } finally {
       setLoading(false);
@@ -252,21 +257,34 @@ const ScheduleManagement: React.FC = () => {
 
   const handleDeleteSchedule = async (scheduleId: number) => {
     if (window.confirm('Tem certeza que deseja excluir este agendamento?')) {
+      console.group(`🚀 Tentativa de Deletar: Agendamento #${scheduleId}`);
+      console.log('ID para deletar:', scheduleId);
+
       try {
         await api.delete(`/api/schedules/${scheduleId}`);
+        console.log('✅ Sucesso ao deletar!');
         // Refetch schedules for the current month
         const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
         const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
         fetchSchedules(firstDayOfMonth, lastDayOfMonth);
-      } catch (err) {
-        console.error("Failed to delete schedule", err);
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
+        }
         setError("Não foi possível excluir o agendamento.");
+      } finally {
+        console.groupEnd();
       }
     }
     setActiveDropdown(null);
   };
 
   const handleSaveSchedule = async (scheduleData: any) => {
+    console.group('🚀 Tentativa de Salvar: Agendamento');
+    console.log('Payload enviado:', scheduleData);
+
     try {
       const payload = {
         ...scheduleData,
@@ -275,8 +293,10 @@ const ScheduleManagement: React.FC = () => {
 
       if (editMode && selectedSchedule) {
         await api.put(`/api/schedules/${selectedSchedule.id}`, payload);
+        console.log('✅ Sucesso ao editar!');
       } else {
         await api.post('/api/schedules', payload);
+        console.log('✅ Sucesso ao criar!');
       }
       setShowForm(false);
       setSelectedSchedule(null);
@@ -284,10 +304,16 @@ const ScheduleManagement: React.FC = () => {
       const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
       fetchSchedules(firstDayOfMonth, lastDayOfMonth);
-    } catch (err) {
-      console.error("Failed to save schedule", err);
+    } catch (err: any) {
+      console.error('❌ Erro ao salvar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
+      }
       setError("Não foi possível salvar o agendamento.");
       // Optionally, leave the form open and show an error message
+    } finally {
+      console.groupEnd();
     }
   };
 

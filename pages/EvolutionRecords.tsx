@@ -57,18 +57,25 @@ const EvolutionRecords: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchRecords = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get('/api/evaluations/evolution', { params: { size: 100 } });
-            setRecords(response.data.content);
-        } catch (err) {
-            console.error("Failed to fetch evolution records", err);
-            setError("Não foi possível carregar as fichas de evolução.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchEvolutionRecords = async () => {
+    try {
+      setLoading(true);
+      console.log('🔄 Buscando lista de Registros de Evolução...');
+      
+      const response = await api.get('/api/evolutionrecords');
+      
+      console.log('✅ Dados recebidos:', response.data);
+      setEvolutionRecords(response.data.content);
+    } catch (err: any) {
+      console.error('❌ Falha ao buscar lista:', err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
+      setError('Falha ao buscar registros de evolução.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
     useEffect(() => {
         fetchRecords();
@@ -107,17 +114,27 @@ const EvolutionRecords: React.FC = () => {
         setShowDetails(true);
     };
 
-    const handleDeleteRecord = async (recordId: number) => {
-        if (window.confirm('Tem certeza que deseja excluir esta ficha?')) {
-            try {
-                await api.delete(`/api/evaluations/evolution/${recordId}`);
-                fetchRecords(); // Refresh data
-            } catch (err) {
-                console.error("Failed to delete evolution record", err);
-                setError("Não foi possível excluir a ficha.");
-            }
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este registro de evolução?')) {
+      console.group(`🚀 Tentativa de Deletar: Registro de Evolução #${id}`);
+      console.log('ID para deletar:', id);
+
+      try {
+        await api.delete(`/api/evolutionrecords/${id}`);
+        console.log('✅ Sucesso ao deletar!');
+        fetchEvolutionRecords(); // Refresh data
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
         }
-    };
+        setError('Falha ao excluir registro de evolução.');
+      } finally {
+        console.groupEnd();
+      }
+    }
+  };
 
     const handleSaveRecord = async (recordData: Omit<FichaEvolucao, 'id'>) => {
         try {

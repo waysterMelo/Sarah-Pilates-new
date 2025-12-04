@@ -47,9 +47,17 @@ const Instructors: React.FC = () => {
   const fetchInstructors = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Buscando lista de Instrutores...');
+      
       const response = await api.get('/api/instructors');
+      
+      console.log('✅ Dados recebidos:', response.data);
       setInstructors(response.data.content);
-    } catch (err) {
+    } catch (err: any) {
+      console.error('❌ Falha ao buscar lista:', err);
+      if (err.response) {
+        console.error('Detalhes do erro:', err.response.data);
+      }
       setError('Falha ao buscar instrutores.');
     } finally {
       setLoading(false);
@@ -62,12 +70,21 @@ const Instructors: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este instrutor?')) {
+      console.group(`🚀 Tentativa de Deletar: Instrutor #${id}`);
+      console.log('ID para deletar:', id);
       try {
         await api.delete(`/api/instructors/${id}`);
+        console.log('✅ Sucesso ao deletar!');
         fetchInstructors(); // Refresh data
-      } catch (err) {
-        console.error('Error deleting instructor:', err);
+      } catch (err: any) {
+        console.error('❌ Erro ao deletar:', err);
+        if (err.response) {
+          console.error('Status:', err.response.status);
+          console.error('Dados do Erro (Backend):', err.response.data);
+        }
         setError('Falha ao excluir instrutor.');
+      } finally {
+        console.groupEnd();
       }
     }
   };

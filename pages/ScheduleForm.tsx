@@ -83,6 +83,7 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
   // Fetch initial data for the form selects
   useEffect(() => {
     const fetchFormData = async () => {
+      console.log('🔄 Buscando dados iniciais para o formulário de Agendamento (alunos, instrutores, modalidades)...');
       try {
         setLoading(true);
         const [studentsRes, instructorsRes, classTypesRes] = await Promise.all([
@@ -90,11 +91,17 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
           api.get('/api/instructors', { params: { size: 100 } }),
           api.get('/api/classtypes', { params: { size: 100 } })
         ]);
+        console.log('✅ Dados de alunos recebidos:', studentsRes.data.content);
+        console.log('✅ Dados de instrutores recebidos:', instructorsRes.data.content);
+        console.log('✅ Dados de modalidades recebidos:', classTypesRes.data.content);
         setStudents(studentsRes.data.content);
         setInstructors(instructorsRes.data.content);
         setClassTypes(classTypesRes.data.content);
-      } catch (error) {
-        console.error("Failed to fetch form data", error);
+      } catch (error: any) {
+        console.error("❌ Falha ao buscar dados iniciais para o formulário:", error);
+        if (error.response) {
+          console.error('Detalhes do erro:', error.response.data);
+        }
         // Handle error (e.g., show a toast message)
       } finally {
         setLoading(false);
@@ -215,7 +222,10 @@ const ScheduleForm: React.FC<ScheduleFormProps> = ({ schedule, isEdit, onSave, o
 
   const handleSubmit = () => {
     if (validateCurrentStep()) {
+      console.group('🚀 Tentativa de Salvar: Agendamento');
+      console.log('Payload enviado para onSave:', formData);
       onSave(formData);
+      console.groupEnd();
     }
   };
 

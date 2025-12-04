@@ -91,8 +91,10 @@ const StudentForm: React.FC = () => {
   useEffect(() => {
     if (isEdit) {
       const fetchStudent = async () => {
+        console.log(`🔄 Buscando dados do Aluno #${id}...`);
         try {
           const { data } = await api.get(`/api/students/${id}`);
+          console.log('✅ Dados recebidos:', data);
           setFormData(prev => ({
             ...prev,
             name: data.name,
@@ -110,8 +112,11 @@ const StudentForm: React.FC = () => {
             },
             // Documents would be fetched from a separate endpoint if needed
           }));
-        } catch (error) {
-          console.error("Failed to fetch student", error);
+        } catch (error: any) {
+          console.error("❌ Falha ao buscar aluno:", error);
+          if (error.response) {
+            console.error('Detalhes do erro:', error.response.data);
+          }
           navigate('/students');
         }
       };
@@ -169,16 +174,26 @@ const StudentForm: React.FC = () => {
         }
       };
 
+      console.group('🚀 Tentativa de Salvar: Aluno');
+      console.log('Payload enviado:', payload);
+
       try {
         if (isEdit) {
           await api.put(`/api/students/${id}`, payload);
+          console.log('✅ Sucesso ao editar!');
         } else {
           await api.post('/api/students', payload);
+          console.log('✅ Sucesso ao criar!');
         }
         navigate('/students');
-      } catch (error) {
-        console.error("Failed to save student", error);
-        // Handle and show error
+      } catch (error: any) {
+        console.error('❌ Erro ao salvar:', error);
+        if (error.response) {
+          console.error('Status:', error.response.status);
+          console.error('Dados do Erro (Backend):', error.response.data);
+        }
+      } finally {
+        console.groupEnd();
       }
     }
   };
