@@ -11,6 +11,7 @@ public record StudentResponseDTO(
     String email,
     String phone,
     LocalDate birthDate,
+    String sex,
     String address,
     String emergencyContact,
     String emergencyPhone,

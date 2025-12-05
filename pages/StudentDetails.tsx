@@ -25,25 +25,43 @@ const StudentDetails: React.FC = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'medical' | 'photos' | 'documents'>('overview');
   const [student, setStudent] = useState<any>(null);
+  const [nextClass, setNextClass] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingNextClass, setLoadingNextClass] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStudent = async () => {
+    const fetchStudentAndNextClass = async () => {
+      if (!id) return;
+
+      setLoading(true);
+      setLoadingNextClass(true);
+
       try {
-        setLoading(true);
-        const { data } = await api.get(`/api/students/${id}`);
-        setStudent(data);
+        // Fetch student details
+        const studentResponse = await api.get(`/api/students/${id}`);
+        console.log('Dados do aluno recebidos da API:', studentResponse.data);
+        setStudent(studentResponse.data);
+
+        // Fetch next class
+        try {
+          const nextClassResponse = await api.get(`/api/students/${id}/next-class`);
+          setNextClass(nextClassResponse.data);
+        } catch (classErr) {
+          console.log('Nenhuma próxima aula encontrada para o aluno.');
+          setNextClass(null);
+        }
+
       } catch (err) {
         console.error("Failed to fetch student details", err);
         setError("Não foi possível carregar os detalhes do aluno.");
       } finally {
         setLoading(false);
+        setLoadingNextClass(false);
       }
     };
-    if (id) {
-      fetchStudent();
-    }
+    
+    fetchStudentAndNextClass();
   }, [id]);
 
   if (loading) {
@@ -64,8 +82,24 @@ const StudentDetails: React.FC = () => {
     'Tonturas ou Desmaios': student.anamnesis?.dizziness,
   }).filter(([, value]) => value).map(([key]) => key);
   
-// ... (rest of component)
+  const getAvatarSrc = (student: any) => {
+    const femaleAvatar = `https://avatar.iran.liara.run/public/girl?username=${student.name}`;
+    const maleAvatar = `https://avatar.iran.liara.run/public/boy?username=${student.name}`;
+    const defaultAvatar = 'https://avatar.iran.liara.run/public';
 
+    if (student.sex === 'FEMININO') return femaleAvatar;
+    if (student.sex === 'MASCULINO') return maleAvatar;
+
+    // Fallback: Adivinhar pelo nome se o sexo não estiver definido
+    const firstName = student.name.split(' ')[0].toLowerCase();
+    if (firstName.endsWith('a') || firstName.endsWith('e') || firstName.endsWith('z')) {
+      return femaleAvatar;
+    }
+
+    return maleAvatar; // Padrão masculino se a adivinhação falhar
+  }
+
+  const avatarSrc = getAvatarSrc(student);
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },
@@ -114,7 +148,7 @@ const StudentDetails: React.FC = () => {
           <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
             <div className="relative">
               <img 
-                src={student.avatar} 
+                src={avatarSrc} 
                 alt={student.name} 
                 className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-2xl"
               />
@@ -249,11 +283,11 @@ const StudentDetails: React.FC = () => {
                 <div className="grid grid-cols-1 gap-4">
                     <div className={`p-4 rounded-xl border-l-4 border-red-400 ${darkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
                         <p className="text-xs font-bold text-red-500 uppercase mb-1">Restrições</p>
-                        <p className="text-sm">{student.medical?.restrictions || 'Nenhuma'}</p>
+                        <p className="text-sm">{student.anamnesis?.restrictions || 'Nenhuma'}</p>
                     </div>
                     <div className={`p-4 rounded-xl border-l-4 border-orange-400 ${darkMode ? 'bg-orange-500/5' : 'bg-orange-50'}`}>
                         <p className="text-xs font-bold text-orange-500 uppercase mb-1">Cirurgias</p>
-                        <p className="text-sm">{student.medical?.surgeries || 'Nenhuma'}</p>
+                        <p className="text-sm">{student.anamnesis?.surgeries || 'Nenhuma'}</p>
                     </div>
                 </div>
               </div>
@@ -267,19 +301,19 @@ const StudentDetails: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Alergias</span>
-                          <p className="text-base font-medium">{student.medical?.allergies || 'Nenhuma'}</p>
+                          <p className="text-base font-medium">{student.anamnesis?.allergies || 'Nenhuma'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Medicamentos em Uso</span>
-                          <p className="text-base font-medium">{student.medical?.medications || 'Nenhuma'}</p>
+                          <p className="text-base font-medium">{student.anamnesis?.medications || 'Nenhuma'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Histórico Cirúrgico</span>
-                          <p className="text-base font-medium">{student.medical?.surgeries || 'Nenhuma'}</p>
+                          <p className="text-base font-medium">{student.anamnesis?.surgeries || 'Nenhuma'}</p>
                       </div>
                       <div className="md:col-span-2">
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Objetivos com o Pilates</span>
-                          <p className="text-base font-medium">{student.objectives || 'Não informado'}</p>
+                          <p className="text-base font-medium">{student.anamnesis?.objectives || 'Não informado'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Patologias / Condições (PAR-Q)</span>

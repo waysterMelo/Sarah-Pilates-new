@@ -5,7 +5,9 @@ import com.sarahpilates.dto.evaluation.EvolutionRecordResponseDTO;
 import com.sarahpilates.dto.evaluation.PhysicalEvaluationResponseDTO;
 import com.sarahpilates.dto.student.StudentRequestDTO;
 import com.sarahpilates.dto.student.StudentResponseDTO;
+import com.sarahpilates.dto.schedule.ScheduleResponseDTO;
 import com.sarahpilates.service.EvaluationService;
+import com.sarahpilates.service.ScheduleService;
 import com.sarahpilates.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/students")
@@ -26,6 +29,7 @@ public class StudentController {
 
     private final StudentService studentService;
     private final EvaluationService evaluationService;
+    private final ScheduleService scheduleService;
 
     @PostMapping
     public ResponseEntity<StudentResponseDTO> createStudent(@Valid @RequestBody StudentRequestDTO studentDTO) {
@@ -37,6 +41,13 @@ public class StudentController {
     public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id) {
         StudentResponseDTO student = studentService.findStudentById(id);
         return ResponseEntity.ok(student);
+    }
+
+    @GetMapping("/{id}/next-class")
+    public ResponseEntity<ScheduleResponseDTO> getNextClass(@PathVariable Long id) {
+        Optional<ScheduleResponseDTO> nextClass = scheduleService.findNextClassByStudent(id);
+        return nextClass.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping

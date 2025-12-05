@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-01T23:16:43-0300",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
+    date = "2025-12-04T22:56:31-0300",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.44.0.v20251118-1623, environment: Java 21.0.9 (Eclipse Adoptium)"
 )
 @Component
 public class StudentMapperImpl implements StudentMapper {
@@ -38,6 +38,7 @@ public class StudentMapperImpl implements StudentMapper {
         student.setEmail( dto.email() );
         student.setPhone( dto.phone() );
         student.setBirthDate( dto.birthDate() );
+        student.setSex( dto.sex() );
         student.setAddress( dto.address() );
         student.setEmergencyContact( dto.emergencyContact() );
         student.setEmergencyPhone( dto.emergencyPhone() );
@@ -59,6 +60,7 @@ public class StudentMapperImpl implements StudentMapper {
         String email = null;
         String phone = null;
         LocalDate birthDate = null;
+        String sex = null;
         String address = null;
         String emergencyContact = null;
         String emergencyPhone = null;
@@ -72,6 +74,7 @@ public class StudentMapperImpl implements StudentMapper {
         email = entity.getEmail();
         phone = entity.getPhone();
         birthDate = entity.getBirthDate();
+        sex = entity.getSex();
         address = entity.getAddress();
         emergencyContact = entity.getEmergencyContact();
         emergencyPhone = entity.getEmergencyPhone();
@@ -80,7 +83,7 @@ public class StudentMapperImpl implements StudentMapper {
         anamnesis = anamnesisToAnamnesisDTO( entity.getAnamnesis() );
         documents = documentListToDocumentResponseDTOList( entity.getDocuments() );
 
-        StudentResponseDTO studentResponseDTO = new StudentResponseDTO( id, name, email, phone, birthDate, address, emergencyContact, emergencyPhone, status, plan, anamnesis, documents );
+        StudentResponseDTO studentResponseDTO = new StudentResponseDTO( id, name, email, phone, birthDate, sex, address, emergencyContact, emergencyPhone, status, plan, anamnesis, documents );
 
         return studentResponseDTO;
     }
@@ -95,6 +98,7 @@ public class StudentMapperImpl implements StudentMapper {
         entity.setEmail( dto.email() );
         entity.setPhone( dto.phone() );
         entity.setBirthDate( dto.birthDate() );
+        entity.setSex( dto.sex() );
         entity.setAddress( dto.address() );
         entity.setEmergencyContact( dto.emergencyContact() );
         entity.setEmergencyPhone( dto.emergencyPhone() );

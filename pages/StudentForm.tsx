@@ -26,6 +26,7 @@ interface StudentData {
   email: string;
   phone: string;
   birthDate: string;
+  sex: string;
   address: string;
   emergencyContact: string;
   emergencyPhone: string;
@@ -60,6 +61,7 @@ const StudentForm: React.FC = () => {
     email: '',
     phone: '',
     birthDate: '',
+    sex: '',
     address: '',
     emergencyContact: '',
     emergencyPhone: '',
@@ -80,6 +82,7 @@ const StudentForm: React.FC = () => {
     documents: []
   });
 
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const steps = [
@@ -101,16 +104,18 @@ const StudentForm: React.FC = () => {
             email: data.email,
             phone: data.phone,
             birthDate: data.birthDate,
+            sex: data.sex,
             address: data.address,
             emergencyContact: data.emergencyContact,
             emergencyPhone: data.emergencyPhone,
             plan: data.plan,
             status: data.status,
+            objectives: data.anamnesis?.objectives || '',
+            documents: data.documents || [],
             medical: {
               ...prev.medical,
               ...data.anamnesis // Spread the anamnesis data into the medical object
             },
-            // Documents would be fetched from a separate endpoint if needed
           }));
         } catch (error: any) {
           console.error("❌ Falha ao buscar aluno:", error);
@@ -132,6 +137,7 @@ const StudentForm: React.FC = () => {
       if (!formData.email.trim()) newErrors.email = 'Email é obrigatório';
       if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
       if (!formData.birthDate) newErrors.birthDate = 'Data de nascimento é obrigatória';
+      if (!formData.sex) newErrors.sex = 'Sexo é obrigatório';
     }
 
     setErrors(newErrors);
@@ -149,16 +155,23 @@ const StudentForm: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (validateStep(currentStep)) {
-      const payload = {
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+      console.log("Validação falhou. Erros:", errors);
+      return;
+    }
+
+    // Lógica para quando estiver editando (envia JSON)
+    if (isEdit) {
+      const studentDataPayload = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         birthDate: formData.birthDate,
+        sex: formData.sex,
         address: formData.address,
         emergencyContact: formData.emergencyContact,
         emergencyPhone: formData.emergencyPhone,
-        status: formData.status.toUpperCase(), // Match enum on backend
+        status: formData.status.toUpperCase(),
         plan: formData.plan,
         anamnesis: {
           allergies: formData.medical.allergies,
@@ -174,20 +187,70 @@ const StudentForm: React.FC = () => {
         }
       };
 
-      console.group('🚀 Tentativa de Salvar: Aluno');
-      console.log('Payload enviado:', payload);
+      console.group('🚀 Tentativa de Editar: Aluno (JSON)');
+      console.log('Payload enviado:', studentDataPayload);
 
       try {
-        if (isEdit) {
-          await api.put(`/api/students/${id}`, payload);
-          console.log('✅ Sucesso ao editar!');
-        } else {
-          await api.post('/api/students', payload);
-          console.log('✅ Sucesso ao criar!');
-        }
+        await api.put(`/api/students/${id}`, studentDataPayload);
+        console.log('✅ Sucesso ao editar!');
+        // Idealmente, aqui teria uma lógica para enviar novos arquivos para outro endpoint
         navigate('/students');
       } catch (error: any) {
-        console.error('❌ Erro ao salvar:', error);
+        console.error('❌ Erro ao editar:', error);
+        if (error.response) {
+          console.error('Status:', error.response.status);
+          console.error('Dados do Erro (Backend):', error.response.data);
+        }
+      } finally {
+        console.groupEnd();
+      }
+    } 
+    // Lógica para quando estiver criando (envia FormData)
+    else {
+      const studentDataPayload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        birthDate: formData.birthDate,
+        sex: formData.sex,
+        address: formData.address,
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
+        status: formData.status.toUpperCase(),
+        plan: formData.plan,
+        anamnesis: {
+          allergies: formData.medical.allergies,
+          surgeries: formData.medical.surgeries,
+          medications: formData.medical.medications,
+          restrictions: formData.medical.restrictions,
+          heartCondition: formData.medical.heartCondition,
+          dizziness: formData.medical.dizziness,
+          boneJointProblem: formData.medical.boneJointProblem,
+          diabetes: formData.medical.diabetes,
+          hypertension: formData.medical.hypertension,
+          objectives: formData.objectives,
+        }
+      };
+
+      const data = new FormData();
+      data.append('student', new Blob([JSON.stringify(studentDataPayload)], { type: 'application/json' }));
+      documentFiles.forEach(file => {
+        data.append('files', file);
+      });
+
+      console.group('🚀 Tentativa de Criar: Aluno com Documentos (FormData)');
+      console.log('Payload enviado:', studentDataPayload);
+      console.log('Arquivos:', documentFiles.map(f => f.name));
+
+      try {
+        const config = {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        };
+        await api.post('/api/students', data, config);
+        console.log('✅ Sucesso ao criar!');
+        navigate('/students');
+      } catch (error: any) {
+        console.error('❌ Erro ao criar:', error);
         if (error.response) {
           console.error('Status:', error.response.status);
           console.error('Dados do Erro (Backend):', error.response.data);
@@ -210,20 +273,27 @@ const StudentForm: React.FC = () => {
     }));
   };
 
-  const handleAddDocument = () => {
-    // Simulação de upload
-    const newDoc = {
-      name: `Documento_${formData.documents.length + 1}.pdf`,
-      size: '1.2 MB',
-      type: 'PDF'
-    };
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    setDocumentFiles(prev => [...prev, ...files]);
+
+    const newDocsForDisplay = files.map(file => ({
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      type: file.type || 'Desconhecido'
+    }));
+
     setFormData(prev => ({
       ...prev,
-      documents: [...prev.documents, newDoc]
+      documents: [...prev.documents, ...newDocsForDisplay]
     }));
   };
 
   const handleRemoveDocument = (index: number) => {
+    const docToRemove = formData.documents[index];
+    setDocumentFiles(prev => prev.filter(file => file.name !== docToRemove.name));
     setFormData(prev => ({
       ...prev,
       documents: prev.documents.filter((_, i) => i !== index)
@@ -316,6 +386,15 @@ const StudentForm: React.FC = () => {
                   <div>
                     <label className={labelClass}>Data de Nascimento *</label>
                     <input type="date" value={formData.birthDate} onChange={(e) => handleInputChange('birthDate', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Sexo *</label>
+                    <select value={formData.sex} onChange={(e) => handleInputChange('sex', e.target.value)} className={`${inputClass} ${errors.sex ? 'border-red-500' : ''}`}>
+                      <option value="">Selecione...</option>
+                      <option value="FEMININO">Feminino</option>
+                      <option value="MASCULINO">Masculino</option>
+                    </select>
+                    {errors.sex && <p className="text-red-500 text-xs mt-1">{errors.sex}</p>}
                   </div>
                   <div className="md:col-span-2">
                     <label className={labelClass}>Endereço</label>
@@ -421,24 +500,24 @@ const StudentForm: React.FC = () => {
 
                 <div>
                   <label className={labelClass}>Documentos do Aluno</label>
-                  <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-                    darkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
-                  }`}>
+                  <div 
+                    className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer ${
+                      darkMode ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                    }`}
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    <input type="file" id="file-upload" multiple onChange={handleFileSelect} className="hidden" />
                     <div className="flex flex-col items-center gap-3">
                       <div className={`p-3 rounded-full ${darkMode ? 'bg-primary-500/20 text-primary-400' : 'bg-primary-50 text-primary-600'}`}>
                         <UploadCloud className="w-6 h-6" />
                       </div>
                       <div>
                         <p className="text-sm font-bold">Clique para adicionar documentos</p>
-                        <p className="text-xs opacity-60">Atestados, contratos, termos de responsabilidade</p>
+                        <p className="text-xs opacity-60">PDF, PNG, JPG (MAX. 5MB)</p>
                       </div>
-                      <button 
-                        type="button"
-                        onClick={handleAddDocument}
-                        className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-lg hover:bg-primary-700"
-                      >
-                        Selecionar Arquivo
-                      </button>
+                      <span className="mt-2 px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-lg">
+                        Selecionar Arquivos
+                      </span>
                     </div>
                   </div>
 
@@ -447,7 +526,7 @@ const StudentForm: React.FC = () => {
                       {formData.documents.map((doc, index) => (
                         <div key={index} className={`flex items-center justify-between p-3 rounded-xl border ${darkMode ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'}`}>
                           <div className="flex items-center gap-3">
-                            <File className="w-5 h-5 text-blue-500" />
+                            <FileText className="w-5 h-5 text-blue-500" />
                             <div>
                               <p className="text-sm font-bold">{doc.name}</p>
                               <p className="text-xs opacity-60">{doc.size} • {doc.type}</p>

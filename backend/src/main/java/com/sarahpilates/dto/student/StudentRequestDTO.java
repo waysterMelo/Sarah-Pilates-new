@@ -20,6 +20,8 @@ public record StudentRequestDTO(
     @PastOrPresent(message = "Birth date must be in the past or present")
     LocalDate birthDate,
 
+    String sex,
+
     String address,
     String emergencyContact,
     String emergencyPhone,

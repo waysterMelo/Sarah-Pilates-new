@@ -112,4 +112,10 @@ public class ScheduleService {
         }
         scheduleRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public Optional<ScheduleResponseDTO> findNextClassByStudent(Long studentId) {
+        return scheduleRepository.findFirstByStudentIdAndDateAfterOrderByDateAscStartTimeAsc(studentId, LocalDate.now().minusDays(1))
+                .map(scheduleMapper::toResponseDTO);
+    }
 }

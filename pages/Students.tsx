@@ -33,6 +33,7 @@ interface Student {
   phone: string;
   plan: string;
   status: 'Ativo' | 'Inativo' | 'Suspenso';
+  sex?: string;
   lastClass: string;
   totalClasses: number;
   avatar?: string;
@@ -134,6 +135,23 @@ const Students: React.FC = () => {
       default: return '';
     }
   };
+  
+  const getAvatarSrc = (student: Student) => {
+    const femaleAvatar = `https://avatar.iran.liara.run/public/girl?username=${student.name}`;
+    const maleAvatar = `https://avatar.iran.liara.run/public/boy?username=${student.name}`;
+    const defaultAvatar = 'https://avatar.iran.liara.run/public';
+
+    if (student.sex === 'FEMININO') return femaleAvatar;
+    if (student.sex === 'MASCULINO') return maleAvatar;
+
+    // Fallback: Adivinhar pelo nome se o sexo não estiver definido
+    const firstName = student.name.split(' ')[0].toLowerCase();
+    if (firstName.endsWith('a') || firstName.endsWith('e') || firstName.endsWith('z')) {
+      return femaleAvatar;
+    }
+
+    return maleAvatar; // Padrão masculino se a adivinhação falhar
+  }
 
   return (
     <main className={`min-h-screen relative transition-colors duration-500 ${
@@ -312,7 +330,7 @@ const Students: React.FC = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <img 
-                      src={student.avatar} 
+                      src={getAvatarSrc(student)} 
                       alt={student.name} 
                       className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-800"
                     />
@@ -424,7 +442,7 @@ const Students: React.FC = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img 
-                            src={student.avatar} 
+                            src={getAvatarSrc(student)} 
                             alt={student.name} 
                             className="w-9 h-9 rounded-xl object-cover"
                           />

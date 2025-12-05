@@ -29,6 +29,7 @@ public class Student {
 
     private String phone;
     private LocalDate birthDate;
+    private String sex;
     private String address;
     private String emergencyContact;
     private String emergencyPhone;
