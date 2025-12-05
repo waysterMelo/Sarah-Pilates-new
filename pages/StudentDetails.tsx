@@ -10,10 +10,11 @@ import {
   Clock,
   Download,
   Edit2,
+  File as FileIcon,
   FileText,
   Mail,
   MapPin,
-  Phone, Trash2
+  Phone, Shield, Trash2
 } from "lucide-react";
 
 import { useTheme } from '../src/contexts/ThemeContext';
@@ -54,6 +55,14 @@ const StudentDetails: React.FC = () => {
   }
   
   const isBirthdayMonth = new Date().getMonth() === new Date(student.birthDate).getMonth();
+
+  const parqConditions = Object.entries({
+    'Problema Cardíaco': student.anamnesis?.heartCondition,
+    'Hipertensão Arterial': student.anamnesis?.hypertension,
+    'Diabetes': student.anamnesis?.diabetes,
+    'Problema Ósseo/Articular': student.anamnesis?.boneJointProblem,
+    'Tonturas ou Desmaios': student.anamnesis?.dizziness,
+  }).filter(([, value]) => value).map(([key]) => key);
   
 // ... (rest of component)
 
@@ -62,7 +71,7 @@ const StudentDetails: React.FC = () => {
     { id: 'overview', label: 'Visão Geral', icon: Activity },
     { id: 'medical', label: 'Ficha Médica', icon: FileText },
     { id: 'photos', label: 'Fotos Progresso', icon: Camera },
-    { id: 'documents', label: 'Documentos', icon: File },
+    { id: 'documents', label: 'Documentos', icon: FileIcon },
   ];
 
   return (
@@ -189,7 +198,7 @@ const StudentDetails: React.FC = () => {
           
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Next Class Card */}
               <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
                 <div className="flex items-center justify-between mb-4">
@@ -212,16 +221,32 @@ const StudentDetails: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Emergency Contact Card */}
+              <div className={`p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-amber-500" />
+                    Contato de Emergência
+                  </h3>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm font-bold">{student.emergencyContact || 'Não informado'}</p>
+                    <p className="text-sm opacity-60">{student.emergencyPhone || 'Não informado'}</p>
+                  </div>
+                </div>
+              </div>
 
               {/* Medical Alert Card */}
-              <div className={`md:col-span-2 p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
+              <div className={`lg:col-span-1 md:col-span-2 p-6 rounded-3xl border ${darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                     Pontos de Atenção
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <div className={`p-4 rounded-xl border-l-4 border-red-400 ${darkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
                         <p className="text-xs font-bold text-red-500 uppercase mb-1">Restrições</p>
                         <p className="text-sm">{student.medical?.restrictions || 'Nenhuma'}</p>
@@ -252,14 +277,22 @@ const StudentDetails: React.FC = () => {
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Histórico Cirúrgico</span>
                           <p className="text-base font-medium">{student.medical?.surgeries || 'Nenhuma'}</p>
                       </div>
+                      <div className="md:col-span-2">
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Objetivos com o Pilates</span>
+                          <p className="text-base font-medium">{student.objectives || 'Não informado'}</p>
+                      </div>
                       <div>
-                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Patologias / Condições</span>
+                          <span className="text-xs font-bold uppercase opacity-50 block mb-1">Patologias / Condições (PAR-Q)</span>
                           <div className="flex flex-wrap gap-2 mt-1">
-                              {student.medical?.conditions?.map(cond => (
+                              {parqConditions.length > 0 ? (
+                                parqConditions.map(cond => (
                                   <span key={cond} className={`px-3 py-1 rounded-full text-sm font-medium border ${darkMode ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-100 text-red-600'}`}>
                                       {cond}
                                   </span>
-                              ))}
+                                ))
+                              ) : (
+                                <p className="text-sm opacity-70">Nenhuma condição pré-existente informada.</p>
+                              )}
                           </div>
                       </div>
                   </div>

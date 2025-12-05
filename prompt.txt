@@ -1,21 +1,2 @@
-index-D-eH0lhn.js:48 Uncaught TypeError: Failed to construct 'File': Please use the 'new' operator, this DOM object constructor cannot be called as a function.
-    at qo (index-D-eH0lhn.js:48:48111)
-    at nc (index-D-eH0lhn.js:48:70916)
-    at th (index-D-eH0lhn.js:48:81249)
-    at $h (index-D-eH0lhn.js:48:117023)
-    at Zg (index-D-eH0lhn.js:48:116069)
-    at Ac (index-D-eH0lhn.js:48:115901)
-    at Ch (index-D-eH0lhn.js:48:112694)
-    at Vh (index-D-eH0lhn.js:48:124494)
-    at MessagePort.ee (index-D-eH0lhn.js:25:1630)
-
-    index-D-eH0lhn.js:48 Uncaught TypeError: Failed to construct 'File': Please use the 'new' operator, this DOM object constructor cannot be called as a function.
-    at qo (index-D-eH0lhn.js:48:48111)
-    at nc (index-D-eH0lhn.js:48:70916)
-    at th (index-D-eH0lhn.js:48:81249)
-    at $h (index-D-eH0lhn.js:48:117023)
-    at Zg (index-D-eH0lhn.js:48:116069)
-    at Ac (index-D-eH0lhn.js:48:115901)
-    at Ch (index-D-eH0lhn.js:48:112694)
-    at Vh (index-D-eH0lhn.js:48:124494)
-    at MessagePort.ee (index-D-eH0lhn.js:25:1630)
+ao clicar no aluno deve retornar todos os dados dele cadastrado correto ? Analise a pagina StudentDetails.tsx 
+verifique se todos os componentes estao sendo retornados e cadastrados ao criar aluno, veja o design e que manda , tudo que tiver no design da aplicaçao deve retornar e funcionar.
