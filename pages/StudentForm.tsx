@@ -205,7 +205,7 @@ const StudentForm: React.FC = () => {
         console.groupEnd();
       }
     } 
-    // Lógica para quando estiver criando (envia FormData)
+    // Lógica para quando estiver criando (envia JSON primeiro, depois arquivos)
     else {
       const studentDataPayload = {
         name: formData.name,
@@ -232,28 +232,45 @@ const StudentForm: React.FC = () => {
         }
       };
 
-      const data = new FormData();
-      data.append('student', new Blob([JSON.stringify(studentDataPayload)], { type: 'application/json' }));
-      documentFiles.forEach(file => {
-        data.append('files', file);
-      });
-
-      console.group('🚀 Tentativa de Criar: Aluno com Documentos (FormData)');
+      console.group('🚀 Tentativa de Criar: Aluno (JSON)');
       console.log('Payload enviado:', studentDataPayload);
-      console.log('Arquivos:', documentFiles.map(f => f.name));
 
       try {
-        const config = {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        };
-        await api.post('/api/students', data, config);
-        console.log('✅ Sucesso ao criar!');
+        // Passo 1: Criar o aluno (JSON)
+        const response = await api.post('/api/students', studentDataPayload);
+        const newStudentId = response.data.id;
+        console.log('✅ Aluno criado com ID:', newStudentId);
+
+        // Passo 2: Fazer upload dos documentos (se houver)
+        if (documentFiles.length > 0 && newStudentId) {
+          console.log(`📤 Iniciando upload de ${documentFiles.length} documentos...`);
+          
+          // Upload sequencial para garantir ordem e evitar sobrecarga
+          for (const file of documentFiles) {
+            const formDataDocs = new FormData();
+            formDataDocs.append('file', file);
+            
+            try {
+              await api.post(`/api/students/${newStudentId}/documents`, formDataDocs, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+              console.log(`✅ Documento "${file.name}" enviado com sucesso.`);
+            } catch (docErr) {
+              console.error(`❌ Falha ao enviar documento "${file.name}":`, docErr);
+              // Não paramos o fluxo principal se um doc falhar, mas logamos
+            }
+          }
+        }
+
+        console.log('🎉 Processo finalizado com sucesso!');
         navigate('/students');
       } catch (error: any) {
-        console.error('❌ Erro ao criar:', error);
+        console.error('❌ Erro ao criar aluno:', error);
         if (error.response) {
           console.error('Status:', error.response.status);
           console.error('Dados do Erro (Backend):', error.response.data);
+          // Opcional: Exibir erro na UI
+          alert(`Erro ao criar aluno: ${error.response.data.message || 'Erro desconhecido'}`);
         }
       } finally {
         console.groupEnd();

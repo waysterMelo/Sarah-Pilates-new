@@ -2,6 +2,7 @@ package com.sarahpilates.service;
 
 import com.sarahpilates.config.FileStorageProperties;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class FileStorageService {
 
     private final Path fileStorageLocation;
@@ -25,6 +27,7 @@ public class FileStorageService {
     public void init() {
         try {
             Files.createDirectories(this.fileStorageLocation);
+            log.info("Diretório de uploads inicializado em: {}", this.fileStorageLocation);
         } catch (Exception ex) {
             throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
         }
@@ -50,7 +53,8 @@ public class FileStorageService {
             Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return uniqueFileName;
+            // Return the absolute path as a string
+            return targetLocation.toString();
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + uniqueFileName + ". Please try again!", ex);
         }

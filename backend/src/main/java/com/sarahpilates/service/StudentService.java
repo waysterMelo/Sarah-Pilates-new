@@ -81,12 +81,13 @@ public class StudentService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with id: " + studentId));
 
-        String fileName = fileStorageService.storeFile(file);
+        String fullPath = fileStorageService.storeFile(file);
+        String fileName = java.nio.file.Paths.get(fullPath).getFileName().toString();
         
         Document doc = new Document();
         doc.setStudent(student);
         doc.setFileName(fileName);
-        doc.setFilePath("CHECK_CONFIG"); // The path is managed by the storage service
+        doc.setFilePath(fullPath); // Stores the real absolute path
         doc.setFileType(file.getContentType());
         doc.setSize(file.getSize());
         doc.setUploadDate(LocalDateTime.now());

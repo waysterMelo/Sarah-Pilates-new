@@ -19,6 +19,13 @@ import {
 
 import { useTheme } from '../src/contexts/ThemeContext';
 
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const weekday = date.toLocaleDateString('pt-BR', { weekday: 'short', timeZone: 'UTC' }).slice(0, 3);
+    return { day, weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1) };
+};
+
 const StudentDetails: React.FC = () => {
   const { darkMode } = useTheme();
   const navigate = useNavigate();
@@ -46,9 +53,13 @@ const StudentDetails: React.FC = () => {
         // Fetch next class
         try {
           const nextClassResponse = await api.get(`/api/students/${id}/next-class`);
-          setNextClass(nextClassResponse.data);
+          if (nextClassResponse.status === 204) {
+            setNextClass(null);
+          } else {
+            setNextClass(nextClassResponse.data);
+          }
         } catch (classErr) {
-          console.log('Nenhuma próxima aula encontrada para o aluno.');
+          console.log('Erro ao buscar próxima aula:', classErr);
           setNextClass(null);
         }
 
@@ -240,20 +251,38 @@ const StudentDetails: React.FC = () => {
                     <Clock className="w-5 h-5 text-blue-500" />
                     Próxima Aula
                   </h3>
-                  <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-600 rounded dark:bg-blue-500/20 dark:text-blue-300">Confirmado</span>
+                  {nextClass && (
+                    <span className={`text-xs font-medium px-2 py-1 rounded ${
+                        nextClass.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300' : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
+                    }`}>
+                      {nextClass.status === 'CONFIRMED' ? 'Confirmado' : 'Pendente'}
+                    </span>
+                  )}
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                     <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 font-bold">
-                        <span className="text-xs uppercase">Sex</span>
-                        <span className="text-lg">14</span>
-                     </div>
-                     <div>
-                        <p className="font-bold text-lg">Reformer Pilates</p>
-                        <p className="text-sm opacity-60">08:00 - 09:00 • Instrutora Ana</p>
-                     </div>
+                {loadingNextClass ? (
+                    <div className="flex items-center justify-center h-24">
+                        <p className="text-sm opacity-60">Carregando...</p>
+                    </div>
+                ) : nextClass ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                       <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 font-bold">
+                          <span className="text-xs uppercase">{formatDate(nextClass.date).weekday}</span>
+                          <span className="text-lg">{formatDate(nextClass.date).day}</span>
+                       </div>
+                       <div>
+                          <p className="font-bold text-lg">{nextClass.classType.name}</p>
+                          <p className="text-sm opacity-60">
+                            {nextClass.startTime.substring(0,5)} - {nextClass.endTime.substring(0,5)} • {nextClass.instructor.name}
+                          </p>
+                       </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                    <div className="flex items-center justify-center h-24">
+                        <p className="text-sm opacity-60">Nenhuma aula futura agendada.</p>
+                    </div>
+                )}
               </div>
               
               {/* Emergency Contact Card */}

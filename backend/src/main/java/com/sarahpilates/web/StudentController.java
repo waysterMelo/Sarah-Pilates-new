@@ -44,10 +44,10 @@ public class StudentController {
     }
 
     @GetMapping("/{id}/next-class")
-    public ResponseEntity<ScheduleResponseDTO> getNextClass(@PathVariable Long id) {
+    public ResponseEntity<?> getNextClass(@PathVariable Long id) {
         Optional<ScheduleResponseDTO> nextClass = scheduleService.findNextClassByStudent(id);
-        return nextClass.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return nextClass.map(response -> ResponseEntity.ok((Object) response))
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping

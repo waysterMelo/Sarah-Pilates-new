@@ -47,3 +47,7 @@ jwt:
 logging:
   level:
     org.springframework.security: DEBUG
+
+# --- File Storage Configuration ---
+file:
+  upload-dir: uploads_alunos

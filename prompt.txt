@@ -1,2 +1,1 @@
-1.Objetivos com o Pilates em ficha medicao nao esta retornando o dados cadastrados.
-2. em visao geral ha um card Próxima Aula ele deve procurar na tabela schedules se tem algum registro e retornar
+d8a7d1f2-1d87-41eb-a8ea-1ffcfd3b1e3c_wayster.pdf	/app/uploads_alunos/d8a7d1f2-1d87-41eb-a8ea-1ffcfd3b1e3c_wayster.pdf	application/pdf	74166	2025-12-05 16:57:40
