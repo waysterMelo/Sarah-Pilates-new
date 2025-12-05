@@ -1,60 +1,21 @@
-📋 Tarefa: Implementação de Logs Detalhados (Debug) no FrontendObjetivo: Adicionar console.log e console.error padronizados em todas as telas de Listagem e Formulários para facilitar a identificação de erros de integração com a API diretamente pelo Console do navegador (F12).📂 Arquivos de EscopoAplicar as alterações em todos os arquivos dentro de pages/ que possuem chamadas à API.Prioridade:Listagens: Students.tsx, Instructors.tsx, Classes.tsx, EvolutionRecords.tsx, PhysicalEvaluation.tsx, ScheduleManagement.tsx.Formulários (Save): StudentForm.tsx, InstructorForm.tsx, ClassForm.tsx, EvolutionRecordForm.tsx, PhysicalEvaluationForm.tsx, ScheduleForm.tsx.🛠️ Instruções de Implementação1. Telas de Formulário (Botões de Salvar)Na função handleSubmit (ou equivalente), adicione logs para inspecionar o payload enviado e o erro retornado.Padrão de Código:const handleSubmit = async () => {
-  // ... validações ...
+index-D-eH0lhn.js:48 Uncaught TypeError: Failed to construct 'File': Please use the 'new' operator, this DOM object constructor cannot be called as a function.
+    at qo (index-D-eH0lhn.js:48:48111)
+    at nc (index-D-eH0lhn.js:48:70916)
+    at th (index-D-eH0lhn.js:48:81249)
+    at $h (index-D-eH0lhn.js:48:117023)
+    at Zg (index-D-eH0lhn.js:48:116069)
+    at Ac (index-D-eH0lhn.js:48:115901)
+    at Ch (index-D-eH0lhn.js:48:112694)
+    at Vh (index-D-eH0lhn.js:48:124494)
+    at MessagePort.ee (index-D-eH0lhn.js:25:1630)
 
-  const payload = {
-    // ... dados do formulário ...
-  };
-
-  // [LOG] Payload antes do envio
-  console.group('🚀 Tentativa de Salvar: [Nome da Entidade]');
-  console.log('Payload enviado:', payload);
-
-  try {
-    if (isEdit) {
-      await api.put(`/api/.../${id}`, payload);
-      console.log('✅ Sucesso ao editar!');
-    } else {
-      await api.post('/api/...', payload);
-      console.log('✅ Sucesso ao criar!');
-    }
-    navigate('/...');
-  } catch (error: any) {
-    // [LOG] Erro detalhado
-    console.error('❌ Erro ao salvar:', error);
-    
-    // Log específico para Axios (mostra a mensagem do backend)
-    if (error.response) {
-      console.error('Status:', error.response.status);
-      console.error('Dados do Erro (Backend):', error.response.data);
-    }
-    
-    // Opcional: Mostrar alerta simples na tela se não houver toast
-    // alert(`Erro: ${JSON.stringify(error.response?.data || error.message)}`);
-  } finally {
-    console.groupEnd();
-  }
-};
-2. Telas de Listagem (useEffect / fetch)Nas funções que buscam dados (ex: fetchStudents), adicione logs para ver o que chegou ou por que falhou.Padrão de Código:const fetchData = async () => {
-  try {
-    setLoading(true);
-    console.log('🔄 Buscando lista de [Nome da Entidade]...');
-    
-    const response = await api.get('/api/...');
-    
-    // [LOG] Sucesso
-    console.log('✅ Dados recebidos:', response.data);
-    // Ajustar conforme a estrutura (ex: response.data.content ou response.data)
-    setItems(response.data.content || response.data);
-    
-  } catch (err: any) {
-    // [LOG] Erro
-    console.error('❌ Falha ao buscar lista:', err);
-    if (err.response) {
-      console.error('Detalhes do erro:', err.response.data);
-    }
-    setError('Falha ao carregar dados. Verifique o console.');
-  } finally {
-    setLoading(false);
-  }
-};
-✅ Critérios de AceiteAo clicar em "Salvar" e ocorrer um erro (ex: erro 400 ou 500), o Console deve mostrar o objeto error.response.data expandido.Ao carregar uma lista, o Console deve mostrar o array de dados recebidos ou o erro de conexão detalhado.Nenhum erro de API deve ser "engolido" (catch vazio) sem pelo menos um console.error.
+    index-D-eH0lhn.js:48 Uncaught TypeError: Failed to construct 'File': Please use the 'new' operator, this DOM object constructor cannot be called as a function.
+    at qo (index-D-eH0lhn.js:48:48111)
+    at nc (index-D-eH0lhn.js:48:70916)
+    at th (index-D-eH0lhn.js:48:81249)
+    at $h (index-D-eH0lhn.js:48:117023)
+    at Zg (index-D-eH0lhn.js:48:116069)
+    at Ac (index-D-eH0lhn.js:48:115901)
+    at Ch (index-D-eH0lhn.js:48:112694)
+    at Vh (index-D-eH0lhn.js:48:124494)
+    at MessagePort.ee (index-D-eH0lhn.js:25:1630)

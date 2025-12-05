@@ -142,7 +142,7 @@ const StudentDetails: React.FC = () => {
                 <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${
                   darkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
                 }`}>
-                  ID: #{student.id.padStart(4, '0')}
+                  ID: #{student.id.toString().padStart(4, '0')}
                 </span>
                 <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${
                   darkMode ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600'
@@ -224,11 +224,11 @@ const StudentDetails: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={`p-4 rounded-xl border-l-4 border-red-400 ${darkMode ? 'bg-red-500/5' : 'bg-red-50'}`}>
                         <p className="text-xs font-bold text-red-500 uppercase mb-1">Restrições</p>
-                        <p className="text-sm">{student.medical.restrictions}</p>
+                        <p className="text-sm">{student.medical?.restrictions || 'Nenhuma'}</p>
                     </div>
                     <div className={`p-4 rounded-xl border-l-4 border-orange-400 ${darkMode ? 'bg-orange-500/5' : 'bg-orange-50'}`}>
                         <p className="text-xs font-bold text-orange-500 uppercase mb-1">Cirurgias</p>
-                        <p className="text-sm">{student.medical.surgeries}</p>
+                        <p className="text-sm">{student.medical?.surgeries || 'Nenhuma'}</p>
                     </div>
                 </div>
               </div>
@@ -242,20 +242,20 @@ const StudentDetails: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Alergias</span>
-                          <p className="text-base font-medium">{student.medical.allergies}</p>
+                          <p className="text-base font-medium">{student.medical?.allergies || 'Nenhuma'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Medicamentos em Uso</span>
-                          <p className="text-base font-medium">{student.medical.medications}</p>
+                          <p className="text-base font-medium">{student.medical?.medications || 'Nenhuma'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Histórico Cirúrgico</span>
-                          <p className="text-base font-medium">{student.medical.surgeries}</p>
+                          <p className="text-base font-medium">{student.medical?.surgeries || 'Nenhuma'}</p>
                       </div>
                       <div>
                           <span className="text-xs font-bold uppercase opacity-50 block mb-1">Patologias / Condições</span>
                           <div className="flex flex-wrap gap-2 mt-1">
-                              {student.medical.conditions.map(cond => (
+                              {student.medical?.conditions?.map(cond => (
                                   <span key={cond} className={`px-3 py-1 rounded-full text-sm font-medium border ${darkMode ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-100 text-red-600'}`}>
                                       {cond}
                                   </span>
