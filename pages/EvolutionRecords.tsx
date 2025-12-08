@@ -24,6 +24,8 @@ import FichaEvolucaoDetails from './FichaEvolucaoDetails';
 
 import { useTheme } from '../src/contexts/ThemeContext';
 
+import ConfirmModal from '../src/components/ConfirmModal';
+
 interface FichaEvolucao {
     id: number;
     nomePaciente: string;
@@ -57,15 +59,19 @@ const EvolutionRecords: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<number | null>(null);
+
   const fetchEvolutionRecords = async () => {
     try {
       setLoading(true);
       console.log('🔄 Buscando lista de Registros de Evolução...');
       
-      const response = await api.get('/api/evolutionrecords');
+      const response = await api.get('/api/evaluations/evolution');
       
       console.log('✅ Dados recebidos:', response.data);
-      setEvolutionRecords(response.data.content);
+      setRecords(response.data.content);
     } catch (err: any) {
       console.error('❌ Falha ao buscar lista:', err);
       if (err.response) {
@@ -78,7 +84,7 @@ const EvolutionRecords: React.FC = () => {
   };
 
     useEffect(() => {
-        fetchRecords();
+        fetchEvolutionRecords();
     }, []);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -114,25 +120,32 @@ const EvolutionRecords: React.FC = () => {
         setShowDetails(true);
     };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este registro de evolução?')) {
-      console.group(`🚀 Tentativa de Deletar: Registro de Evolução #${id}`);
-      console.log('ID para deletar:', id);
+  const handleDeleteRecord = (id: number) => {
+    setRecordToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
 
-      try {
-        await api.delete(`/api/evolutionrecords/${id}`);
-        console.log('✅ Sucesso ao deletar!');
-        fetchEvolutionRecords(); // Refresh data
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError('Falha ao excluir registro de evolução.');
-      } finally {
-        console.groupEnd();
+  const confirmDeleteRecord = async () => {
+    if (!recordToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Registro de Evolução #${recordToDelete}`);
+    console.log('ID para deletar:', recordToDelete);
+
+    try {
+      await api.delete(`/api/evaluations/evolution/${recordToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      fetchEvolutionRecords(); // Refresh data
+      setIsDeleteModalOpen(false);
+      setRecordToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
       }
+      setError('Falha ao excluir registro de evolução.');
+    } finally {
+      console.groupEnd();
     }
   };
 
@@ -331,6 +344,17 @@ const EvolutionRecords: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDeleteRecord}
+                title="Excluir Registro"
+                message="Tem certeza que deseja excluir este registro de evolução? Esta ação não pode ser desfeita."
+                confirmText="Sim, excluir"
+                cancelText="Cancelar"
+                type="danger"
+            />
         </div>
     );
 };

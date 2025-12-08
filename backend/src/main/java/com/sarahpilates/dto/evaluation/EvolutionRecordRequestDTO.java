@@ -8,7 +8,7 @@ public record EvolutionRecordRequestDTO(
     @NotNull Long studentId,
     @NotNull Long instructorId,
     @NotNull LocalDate date,
-    Integer sessionNumber,
+    Integer session,
     String focus,
     List<String> exercisesPerformed,
     String progressNotes,

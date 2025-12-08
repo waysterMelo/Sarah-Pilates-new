@@ -16,9 +16,8 @@ import java.util.List;
 public record InstructorRequestDTO(
     @NotBlank String name,
     @NotBlank @Email String email,
-    @Size(min = 8) String password,
-    @NotNull UserRole role,
     String phone,
+    String sex,
     LocalDate birthDate,
     String address,
     String emergencyContact,

@@ -25,6 +25,7 @@ interface InstructorData {
   name: string;
   email: string;
   phone: string;
+  sex: string;
   birthDate: string;
   address: string;
   emergencyContact: string;
@@ -53,6 +54,7 @@ const InstructorForm: React.FC = () => {
     name: '',
     email: '',
     phone: '',
+    sex: '',
     birthDate: '',
     address: '',
     emergencyContact: '',
@@ -114,6 +116,7 @@ const InstructorForm: React.FC = () => {
             name: data.name,
             email: data.email,
             phone: data.phone || '',
+            sex: data.sex || '',
             status: data.status ? data.status.charAt(0).toUpperCase() + data.status.slice(1).toLowerCase().replace('FERIAS', 'Férias') : 'Inativo',
             specialties: data.specialties || [],
             certifications: data.certifications || [],
@@ -179,6 +182,7 @@ const InstructorForm: React.FC = () => {
       if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
       if (!formData.email.trim()) newErrors.email = 'Email é obrigatório';
       if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
+      if (!formData.sex) newErrors.sex = 'Sexo é obrigatório';
       if (formData.emergencyContact && !formData.emergencyPhone) {
         newErrors.emergencyPhone = 'Telefone de emergência é obrigatório.';
       }
@@ -214,15 +218,8 @@ const InstructorForm: React.FC = () => {
       const payload = {
         ...formData,
         status: convertStatus(formData.status),
-        role: 'ROLE_INSTRUCTOR',
         workingHours: convertWorkingHoursToDTO(formData.workingHours),
-        password: !isEdit ? 'password123' : undefined, // Only send password on create
       };
-
-      // Remove password from payload if it's not being set
-      if (isEdit) {
-        delete payload.password;
-      }
 
       console.group('🚀 Tentativa de Salvar: Instrutor');
       console.log('Payload enviado:', payload);
@@ -391,6 +388,19 @@ const InstructorForm: React.FC = () => {
                              className={`${inputClass} ${errors.phone ? 'border-red-500' : ''}`}
                              placeholder="(00) 00000-0000"
                           />
+                       </div>
+                       <div>
+                          <label className={labelClass}>Sexo *</label>
+                          <select
+                             value={formData.sex}
+                             onChange={(e) => handleInputChange('sex', e.target.value)}
+                             className={`${inputClass} ${errors.sex ? 'border-red-500' : ''}`}
+                          >
+                             <option value="">Selecione...</option>
+                             <option value="FEMININO">Feminino</option>
+                             <option value="MASCULINO">Masculino</option>
+                          </select>
+                          {errors.sex && <p className="text-red-500 text-xs mt-1">{errors.sex}</p>}
                        </div>
                        <div>
                           <label className={labelClass}>Data Nascimento</label>

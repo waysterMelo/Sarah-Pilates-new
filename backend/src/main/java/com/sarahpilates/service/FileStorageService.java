@@ -3,9 +3,12 @@ package com.sarahpilates.service;
 import com.sarahpilates.config.FileStorageProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,6 +60,20 @@ public class FileStorageService {
             return targetLocation.toString();
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + uniqueFileName + ". Please try again!", ex);
+        }
+    }
+
+    public Resource loadFileAsResource(String filePath) {
+        try {
+            Path filePathPath = Paths.get(filePath);
+            Resource resource = new UrlResource(filePathPath.toUri());
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("Could not read file: " + filePath);
+            }
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Could not read file: " + filePath, ex);
         }
     }
 }

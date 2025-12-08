@@ -95,4 +95,12 @@ public class StudentService {
         Document savedDoc = documentRepository.save(doc);
         return documentMapper.toResponseDTO(savedDoc);
     }
+
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource downloadDocument(Long documentId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new EntityNotFoundException("Document not found with id: " + documentId));
+        
+        return fileStorageService.loadFileAsResource(document.getFilePath());
+    }
 }

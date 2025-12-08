@@ -1,7 +1,6 @@
 package com.sarahpilates.mapper;
 
 import com.sarahpilates.domain.enums.InstructorStatus;
-import com.sarahpilates.domain.enums.UserRole;
 import com.sarahpilates.domain.instructor.Instructor;
 import com.sarahpilates.domain.instructor.WorkingHours;
 import com.sarahpilates.dto.instructor.InstructorRequestDTO;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-05T12:18:40-0300",
+    date = "2025-12-08T14:05:06-0300",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -34,8 +33,8 @@ public class InstructorMapperImpl implements InstructorMapper {
 
         instructor.setName( dto.name() );
         instructor.setEmail( dto.email() );
-        instructor.setRole( dto.role() );
         instructor.setPhone( dto.phone() );
+        instructor.setSex( dto.sex() );
         instructor.setBirthDate( dto.birthDate() );
         instructor.setAddress( dto.address() );
         instructor.setEmergencyContact( dto.emergencyContact() );
@@ -67,8 +66,8 @@ public class InstructorMapperImpl implements InstructorMapper {
         Long id = null;
         String name = null;
         String email = null;
-        UserRole role = null;
         String phone = null;
+        String sex = null;
         LocalDate birthDate = null;
         String address = null;
         String emergencyContact = null;
@@ -85,8 +84,8 @@ public class InstructorMapperImpl implements InstructorMapper {
         id = entity.getId();
         name = entity.getName();
         email = entity.getEmail();
-        role = entity.getRole();
         phone = entity.getPhone();
+        sex = entity.getSex();
         birthDate = entity.getBirthDate();
         address = entity.getAddress();
         emergencyContact = entity.getEmergencyContact();
@@ -106,7 +105,7 @@ public class InstructorMapperImpl implements InstructorMapper {
         hourlyRate = entity.getHourlyRate();
         workingHours = toWorkingHoursDtoList( entity.getWorkingHours() );
 
-        InstructorResponseDTO instructorResponseDTO = new InstructorResponseDTO( id, name, email, role, phone, birthDate, address, emergencyContact, emergencyPhone, specialties, certifications, bio, experience, status, hireDate, hourlyRate, workingHours );
+        InstructorResponseDTO instructorResponseDTO = new InstructorResponseDTO( id, name, email, phone, sex, birthDate, address, emergencyContact, emergencyPhone, specialties, certifications, bio, experience, status, hireDate, hourlyRate, workingHours );
 
         return instructorResponseDTO;
     }
@@ -119,8 +118,8 @@ public class InstructorMapperImpl implements InstructorMapper {
 
         entity.setName( dto.name() );
         entity.setEmail( dto.email() );
-        entity.setRole( dto.role() );
         entity.setPhone( dto.phone() );
+        entity.setSex( dto.sex() );
         entity.setBirthDate( dto.birthDate() );
         entity.setAddress( dto.address() );
         entity.setEmergencyContact( dto.emergencyContact() );

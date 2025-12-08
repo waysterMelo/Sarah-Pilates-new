@@ -94,23 +94,33 @@ const StudentDetails: React.FC = () => {
   }).filter(([, value]) => value).map(([key]) => key);
   
   const getAvatarSrc = (student: any) => {
-    const femaleAvatar = `https://avatar.iran.liara.run/public/girl?username=${student.name}`;
-    const maleAvatar = `https://avatar.iran.liara.run/public/boy?username=${student.name}`;
-    const defaultAvatar = 'https://avatar.iran.liara.run/public';
-
-    if (student.sex === 'FEMININO') return femaleAvatar;
-    if (student.sex === 'MASCULINO') return maleAvatar;
-
-    // Fallback: Adivinhar pelo nome se o sexo não estiver definido
-    const firstName = student.name.split(' ')[0].toLowerCase();
-    if (firstName.endsWith('a') || firstName.endsWith('e') || firstName.endsWith('z')) {
-      return femaleAvatar;
-    }
-
-    return maleAvatar; // Padrão masculino se a adivinhação falhar
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random&color=fff`;
   }
 
   const avatarSrc = getAvatarSrc(student);
+
+  const handleDownload = async (documentId: number, fileName: string) => {
+    try {
+      const response = await api.get(`/api/students/documents/${documentId}/download`, {
+        responseType: 'blob',
+      });
+      
+      // Create a blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao baixar documento:', error);
+      alert('Não foi possível baixar o arquivo.');
+    }
+  };
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },
@@ -401,7 +411,7 @@ const StudentDetails: React.FC = () => {
                       </button>
                   </div>
                   <div className="space-y-3">
-                      {student.documents.map((doc, i) => (
+                      {student.documents.map((doc: any, i: number) => (
                           <div key={i} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                               darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
                           }`}>
@@ -410,16 +420,19 @@ const StudentDetails: React.FC = () => {
                                       <FileText className="w-6 h-6" />
                                   </div>
                                   <div>
-                                      <p className="font-bold text-sm">{doc.name}</p>
-                                      <p className="text-xs opacity-60">Adicionado em {doc.date}</p>
+                                      <p className="font-bold text-sm">{doc.fileName}</p>
+                                      <p className="text-xs opacity-60">
+                                        Adicionado em {new Date(doc.uploadDate).toLocaleDateString('pt-BR')}
+                                      </p>
                                   </div>
                               </div>
                               <div className="flex gap-2">
-                                  <button className={`p-2 rounded-lg ${darkMode ? 'hover:bg-white/10' : 'hover:bg-gray-200'}`} title="Baixar">
+                                  <button 
+                                    onClick={() => handleDownload(doc.id, doc.fileName)}
+                                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-white/10' : 'hover:bg-gray-200'}`} 
+                                    title="Baixar"
+                                  >
                                       <Download className="w-4 h-4" />
-                                  </button>
-                                  <button className={`p-2 rounded-lg text-red-500 ${darkMode ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`} title="Excluir">
-                                      <Trash2 className="w-4 h-4" />
                                   </button>
                               </div>
                           </div>

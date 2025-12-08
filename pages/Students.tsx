@@ -21,10 +21,13 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
-  Loader
+  Loader,
+  X
 } from 'lucide-react';
 import { useTheme } from '../src/contexts/ThemeContext';
 import api from "../src/services/api";
+
+import ConfirmModal from '../src/components/ConfirmModal';
 
 interface Student {
   id: number;
@@ -46,6 +49,11 @@ const Students: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [todayClasses, setTodayClasses] = useState(0);
+  
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
 
   const fetchStudents = async () => {
     try {
@@ -56,12 +64,25 @@ const Students: React.FC = () => {
       
       console.log('✅ Dados recebidos:', response.data);
       setStudents(response.data.content);
+
+      // Fetch Today's Classes
+      const today = new Date().toISOString().split('T')[0];
+      const scheduleResponse = await api.get('/api/schedules', {
+        params: {
+          startDate: today,
+          endDate: today,
+          size: 1000
+        }
+      });
+      const schedules = Array.isArray(scheduleResponse.data) ? scheduleResponse.data : (scheduleResponse.data.content || []);
+      setTodayClasses(schedules.length);
+
     } catch (err: any) {
-      console.error('❌ Falha ao buscar lista:', err);
+      console.error('❌ Falha ao buscar dados:', err);
       if (err.response) {
         console.error('Detalhes do erro:', err.response.data);
       }
-      setError('Falha ao buscar alunos.');
+      setError('Falha ao buscar dados.');
     } finally {
       setLoading(false);
     }
@@ -71,24 +92,31 @@ const Students: React.FC = () => {
     fetchStudents();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
-      console.group(`🚀 Tentativa de Deletar: Aluno #${id}`);
-      console.log('ID para deletar:', id);
-      try {
-        await api.delete(`/api/students/${id}`);
-        console.log('✅ Sucesso ao deletar!');
-        fetchStudents();
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError('Falha ao excluir aluno.');
-      } finally {
-        console.groupEnd();
+  const handleDelete = (id: number) => {
+    setStudentToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!studentToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Aluno #${studentToDelete}`);
+    console.log('ID para deletar:', studentToDelete);
+    try {
+      await api.delete(`/api/students/${studentToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      fetchStudents();
+      setIsDeleteModalOpen(false);
+      setStudentToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
       }
+      setError('Falha ao excluir aluno.');
+    } finally {
+      console.groupEnd();
     }
   };
 
@@ -107,7 +135,7 @@ const Students: React.FC = () => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.phone.includes(searchTerm);
-    const matchesFilter = filterStatus === 'Todos' || student.status === filterStatus;
+    const matchesFilter = filterStatus === 'Todos' || student.status?.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
   });
 
@@ -137,20 +165,7 @@ const Students: React.FC = () => {
   };
   
   const getAvatarSrc = (student: Student) => {
-    const femaleAvatar = `https://avatar.iran.liara.run/public/girl?username=${student.name}`;
-    const maleAvatar = `https://avatar.iran.liara.run/public/boy?username=${student.name}`;
-    const defaultAvatar = 'https://avatar.iran.liara.run/public';
-
-    if (student.sex === 'FEMININO') return femaleAvatar;
-    if (student.sex === 'MASCULINO') return maleAvatar;
-
-    // Fallback: Adivinhar pelo nome se o sexo não estiver definido
-    const firstName = student.name.split(' ')[0].toLowerCase();
-    if (firstName.endsWith('a') || firstName.endsWith('e') || firstName.endsWith('z')) {
-      return femaleAvatar;
-    }
-
-    return maleAvatar; // Padrão masculino se a adivinhação falhar
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random&color=fff`;
   }
 
   return (
@@ -193,17 +208,16 @@ const Students: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 pb-6 relative z-10">
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total de Alunos', value: students.length, icon: Users, color: 'text-blue-500', sub: '+12% este mês' },
-            { label: 'Ativos', value: students.filter(s => s.status === 'Ativo').length, icon: UserCheck, color: 'text-emerald-500', sub: '94% taxa de retenção' },
-            { label: 'Aulas Hoje', value: '8', icon: Calendar, color: 'text-purple-500', sub: '6 confirmadas' },
-            { label: 'Receita', value: '12.4k', icon: TrendingUp, color: 'text-orange-500', sub: '+8% vs anterior' }
+            { label: 'Total de Alunos', value: students.length, icon: Users, color: 'text-blue-500', barColor: 'bg-blue-500', width: '75%' },
+            { label: 'Ativos', value: students.filter(s => s.status?.toUpperCase() === 'ATIVO').length, icon: UserCheck, color: 'text-emerald-500', barColor: 'bg-emerald-500', width: '90%' },
+            { label: 'Aulas Hoje', value: todayClasses, icon: Calendar, color: 'text-purple-500', barColor: 'bg-purple-500', width: '60%' }
           ].map((stat, index) => (
             <div key={index} className={`p-5 rounded-2xl border transition-all ${
               darkMode ? 'bg-slate-900/60 border-white/5' : 'bg-white border-gray-100 shadow-sm'
             }`}>
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-2">
                 <div>
                   <p className={`text-xs font-medium uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                     {stat.label}
@@ -214,14 +228,14 @@ const Students: React.FC = () => {
                   <stat.icon className="w-5 h-5" />
                 </div>
               </div>
-              <p className={`text-xs font-medium flex items-center gap-1 ${
-                stat.sub.includes('+') 
-                  ? (darkMode ? 'text-emerald-400' : 'text-emerald-600') 
-                  : (darkMode ? 'text-slate-400' : 'text-slate-500')
-              }`}>
-                <Activity className="w-3 h-3" />
-                {stat.sub}
-              </p>
+              
+              {/* Decorative Bar */}
+              <div className={`w-full h-1.5 rounded-full mt-3 ${darkMode ? 'bg-white/5' : 'bg-slate-100'}`}>
+                <div 
+                  className={`h-full rounded-full ${stat.barColor} opacity-80`} 
+                  style={{ width: stat.width }}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -316,11 +330,11 @@ const Students: React.FC = () => {
             <p>{error}</p>
           </div>
         ) : viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
             {currentStudents.map((student) => (
               <div
                 key={student.id}
-                className={`group relative rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 ${
+                className={`group relative rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
                   darkMode 
                     ? 'bg-slate-900/50 border-white/5 hover:border-primary-500/30 hover:bg-slate-800/50' 
                     : 'bg-white border-gray-100 hover:border-primary-200 shadow-sm hover:shadow-xl hover:shadow-primary-500/5'
@@ -342,38 +356,17 @@ const Students: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="relative">
+                  <div className="relative z-10">
                     <button 
-                      onClick={() => setActiveDropdown(activeDropdown === student.id ? null : student.id)}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        darkMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-50 text-slate-400'
-                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(student.id);
+                      }}
+                      className={`p-1.5 rounded-lg transition-colors hover:bg-red-500/10 text-slate-400 hover:text-red-500`}
+                      title="Excluir Aluno"
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </button>
-                    
-                    {activeDropdown === student.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                        <div className={`absolute right-0 mt-2 w-40 rounded-xl border shadow-lg z-20 overflow-hidden ${
-                          darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'
-                        }`}>
-                          <button onClick={() => navigate(`/students/${student.id}`)} className={`w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                            <Eye className="w-3 h-3" /> Ver Perfil
-                          </button>
-                          <button 
-                            onClick={() => navigate(`/students/${student.id}/edit`, { state: { student } })}
-                            className={`w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
-                          >
-                            <Edit2 className="w-3 h-3" /> Editar
-                          </button>
-                          <div className={`h-[1px] w-full ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`} />
-                          <button onClick={() => handleDelete(student.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
-                            <Trash2 className="w-3 h-3" /> Excluir
-                          </button>
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
 
@@ -552,6 +545,17 @@ const Students: React.FC = () => {
         )}
 
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Aluno"
+        message="Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita e removerá todos os históricos e documentos associados."
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </main>
   );
 };

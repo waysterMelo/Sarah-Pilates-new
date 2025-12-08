@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-05T12:18:40-0300",
+    date = "2025-12-08T14:05:02-0300",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -29,8 +29,8 @@ public class EvolutionRecordMapperImpl implements EvolutionRecordMapper {
 
         EvolutionRecord evolutionRecord = new EvolutionRecord();
 
+        evolutionRecord.setSessionNumber( dto.session() );
         evolutionRecord.setDate( dto.date() );
-        evolutionRecord.setSessionNumber( dto.sessionNumber() );
         evolutionRecord.setFocus( dto.focus() );
         List<String> list = dto.exercisesPerformed();
         if ( list != null ) {
@@ -121,8 +121,8 @@ public class EvolutionRecordMapperImpl implements EvolutionRecordMapper {
             return;
         }
 
+        entity.setSessionNumber( dto.session() );
         entity.setDate( dto.date() );
-        entity.setSessionNumber( dto.sessionNumber() );
         entity.setFocus( dto.focus() );
         if ( entity.getExercisesPerformed() != null ) {
             List<String> list = dto.exercisesPerformed();

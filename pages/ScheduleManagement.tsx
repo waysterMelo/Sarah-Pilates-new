@@ -26,6 +26,8 @@ import ScheduleDetails from './ScheduleDetails';
 
 import {useTheme} from "../src/contexts/ThemeContext";
 
+import ConfirmModal from '../src/components/ConfirmModal';
+
 interface Schedule {
   id: number;
   studentId: number;
@@ -68,6 +70,10 @@ const ScheduleManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState<number | null>(null);
+
   const fetchSchedules = async (startDate: Date, endDate: Date) => {
     try {
       setLoading(true);
@@ -82,7 +88,31 @@ const ScheduleManagement: React.FC = () => {
       console.log('🔄 Buscando lista de Agendamentos...', params);
       const response = await api.get('/api/schedules', { params });
       console.log('✅ Dados recebidos:', response.data);
-      setSchedules(response.data.content);
+      // Handle both paginated (response.data.content) and list (response.data) responses
+      const data = response.data;
+      const rawList = Array.isArray(data) ? data : (data?.content || []);
+      
+      // Map API response to Component Interface
+      const mappedList = rawList.map((item: any) => ({
+        id: item.id,
+        studentId: item.student?.id || 0,
+        studentName: item.student?.name || 'Aluno Desconhecido',
+        instructorId: item.instructor?.id || 0,
+        instructorName: item.instructor?.name || 'Instrutor Desconhecido',
+        date: item.date,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        type: item.classType?.name || item.type || 'Aula',
+        status: item.status, // Ensure casing matches or use a formatter if needed
+        notes: item.notes || '',
+        room: item.room || '',
+        equipment: item.equipment || [], // Default to empty array to prevent .length crash
+        price: item.price || 0,
+        paymentStatus: item.paymentStatus,
+        createdAt: item.createdAt || new Date().toISOString()
+      }));
+
+      setSchedules(mappedList);
     } catch (err: any) {
       console.error("❌ Falha ao buscar lista:", err);
       if (err.response) {
@@ -139,7 +169,7 @@ const ScheduleManagement: React.FC = () => {
         isToday: isToday(currentDate),
         isSelected: isSameDay(currentDate, selectedDate),
         scheduleCount: daySchedules.length,
-        revenue: daySchedules.filter(s => s.paymentStatus === 'Pago').reduce((acc, s) => acc + s.price, 0)
+        revenue: 0 // A implementar
       });
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -255,30 +285,37 @@ const ScheduleManagement: React.FC = () => {
     setActiveDropdown(null);
   };
 
-  const handleDeleteSchedule = async (scheduleId: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este agendamento?')) {
-      console.group(`🚀 Tentativa de Deletar: Agendamento #${scheduleId}`);
-      console.log('ID para deletar:', scheduleId);
-
-      try {
-        await api.delete(`/api/schedules/${scheduleId}`);
-        console.log('✅ Sucesso ao deletar!');
-        // Refetch schedules for the current month
-        const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-        const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-        fetchSchedules(firstDayOfMonth, lastDayOfMonth);
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError("Não foi possível excluir o agendamento.");
-      } finally {
-        console.groupEnd();
-      }
-    }
+  const handleDeleteSchedule = (scheduleId: number) => {
+    setScheduleToDelete(scheduleId);
     setActiveDropdown(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (!scheduleToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Agendamento #${scheduleToDelete}`);
+    console.log('ID para deletar:', scheduleToDelete);
+
+    try {
+      await api.delete(`/api/schedules/${scheduleToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      // Refetch schedules for the current month
+      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+      fetchSchedules(firstDayOfMonth, lastDayOfMonth);
+      setIsDeleteModalOpen(false);
+      setScheduleToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
+      }
+      setError("Não foi possível excluir o agendamento.");
+    } finally {
+      console.groupEnd();
+    }
   };
 
   const handleSaveSchedule = async (scheduleData: any) => {
@@ -562,9 +599,7 @@ const ScheduleManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-medium ${darkMode ? 'text-slate-400' : 'text-gray-600'}`}>Receita:</span>
                     <span className={`text-sm font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                      R$ {getSchedulesForDate(selectedDate)
-                        .filter(s => s.paymentStatus === 'Pago')
-                        .reduce((acc, s) => acc + s.price, 0)}
+                      -
                     </span>
                   </div>
                 </div>
@@ -590,8 +625,6 @@ const ScheduleManagement: React.FC = () => {
                   </h3>
                   <div className="flex items-center gap-4 text-blue-100 text-sm mt-2">
                     <span>{getSchedulesForDate(selectedDate).length} aula{getSchedulesForDate(selectedDate).length !== 1 ? 's' : ''}</span>
-                    <span>•</span>
-                    <span>Receita: R$ {getSchedulesForDate(selectedDate).filter(s => s.paymentStatus === 'Pago').reduce((acc, s) => acc + s.price, 0)}</span>
                   </div>
                 </div>
                 
@@ -1157,6 +1190,17 @@ const ScheduleManagement: React.FC = () => {
           onClick={() => setShowQuickActions(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteSchedule}
+        title="Cancelar Agendamento"
+        message="Tem certeza que deseja excluir este agendamento? O horário ficará disponível novamente."
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };

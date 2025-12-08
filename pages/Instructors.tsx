@@ -19,15 +19,20 @@ import {
   ChevronRight,
   ArrowLeft,
   AlertTriangle,
-  Loader
+  Loader,
+  X
 } from 'lucide-react';
 import { useTheme } from '../src/contexts/ThemeContext';
+
+import ConfirmModal from '../src/components/ConfirmModal';
+import api from '@/services/api';
 
 interface Instructor {
   id: number;
   name: string;
   email: string;
   phone: string;
+  sex?: string;
   specialties: string[];
   status: 'Ativo' | 'Inativo' | 'Férias';
   rating: number;
@@ -43,6 +48,10 @@ const Instructors: React.FC = () => {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [instructorToDelete, setInstructorToDelete] = useState<number | null>(null);
 
   const fetchInstructors = async () => {
     try {
@@ -68,24 +77,31 @@ const Instructors: React.FC = () => {
     fetchInstructors();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este instrutor?')) {
-      console.group(`🚀 Tentativa de Deletar: Instrutor #${id}`);
-      console.log('ID para deletar:', id);
-      try {
-        await api.delete(`/api/instructors/${id}`);
-        console.log('✅ Sucesso ao deletar!');
-        fetchInstructors(); // Refresh data
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError('Falha ao excluir instrutor.');
-      } finally {
-        console.groupEnd();
+  const handleDelete = (id: number) => {
+    setInstructorToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!instructorToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Instrutor #${instructorToDelete}`);
+    console.log('ID para deletar:', instructorToDelete);
+    try {
+      await api.delete(`/api/instructors/${instructorToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      fetchInstructors(); // Refresh data
+      setIsDeleteModalOpen(false);
+      setInstructorToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
       }
+      setError('Falha ao excluir instrutor.');
+    } finally {
+      console.groupEnd();
     }
   };
 
@@ -101,7 +117,7 @@ const Instructors: React.FC = () => {
   const filteredInstructors = instructors.filter(inst => {
     const matchesSearch = inst.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           inst.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'Todos' || inst.status === filterStatus;
+    const matchesFilter = filterStatus === 'Todos' || inst.status?.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesFilter;
   });
 
@@ -119,16 +135,12 @@ const Instructors: React.FC = () => {
     }
   };
 
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center gap-0.5">
-        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-        <span className={`text-xs font-bold ${darkMode ? 'text-slate-300' : 'text-gray-700'}`}>{rating.toFixed(1)}</span>
-      </div>
-    );
+  const getAvatarSrc = (instructor: Instructor) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.name)}&background=random&color=fff`;
   };
 
   return (
+
     <main className={`min-h-screen relative transition-colors duration-500 ${
       darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-gray-900'
     }`}>
@@ -168,7 +180,7 @@ const Instructors: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 pb-6 relative z-10">
         
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className={`p-5 rounded-2xl border flex items-center justify-between ${darkMode ? 'bg-slate-900/60 border-white/5' : 'bg-white border-gray-100'}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Total Instrutores</p>
@@ -181,19 +193,10 @@ const Instructors: React.FC = () => {
           <div className={`p-5 rounded-2xl border flex items-center justify-between ${darkMode ? 'bg-slate-900/60 border-white/5' : 'bg-white border-gray-100'}`}>
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Ativos</p>
-              <h3 className="text-2xl font-bold mt-1 text-emerald-500">{instructors.filter(i => i.status === 'Ativo').length}</h3>
+              <h3 className="text-2xl font-bold mt-1 text-emerald-500">{instructors.filter(i => i.status?.toUpperCase() === 'ATIVO').length}</h3>
             </div>
             <div className={`p-3 rounded-xl ${darkMode ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
               <CheckCircle2 className="w-6 h-6" />
-            </div>
-          </div>
-          <div className={`p-5 rounded-2xl border flex items-center justify-between ${darkMode ? 'bg-slate-900/60 border-white/5' : 'bg-white border-gray-100'}`}>
-            <div>
-              <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Avaliação Média</p>
-              <h3 className="text-2xl font-bold mt-1 text-yellow-500">4.8</h3>
-            </div>
-            <div className={`p-3 rounded-xl ${darkMode ? 'bg-yellow-500/10 text-yellow-400' : 'bg-yellow-50 text-yellow-600'}`}>
-              <Star className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -281,56 +284,38 @@ const Instructors: React.FC = () => {
                     : 'bg-white border-gray-100 hover:border-primary-200 shadow-sm hover:shadow-xl hover:shadow-primary-500/5'
                 }`}
               >
+                {/* Card Header */}
                 <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <img 
-                      src={instructor.avatar} 
+                      src={getAvatarSrc(instructor)} 
                       alt={instructor.name} 
-                      className="w-14 h-14 rounded-2xl object-cover shadow-sm"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-800"
                     />
                     <div>
-                      <h3 className="font-bold text-lg leading-tight">{instructor.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        {renderStars(instructor.rating)}
-                        <span className="text-[10px] opacity-50">• {instructor.totalClasses} aulas</span>
-                      </div>
+                      <h3 className="font-bold text-sm leading-tight line-clamp-1">{instructor.name}</h3>
+                      <span className={`inline-flex mt-1 items-center px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusStyles(instructor.status)}`}>
+                        {instructor.status}
+                      </span>
                     </div>
                   </div>
-                  <div className="relative">
+                  
+                  <div className="relative z-10">
                     <button 
-                      onClick={() => setActiveDropdown(activeDropdown === instructor.id ? null : instructor.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        darkMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-50 text-slate-400'
-                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(instructor.id);
+                      }}
+                      className={`p-1.5 rounded-lg transition-colors hover:bg-red-500/10 text-slate-400 hover:text-red-500`}
+                      title="Excluir Instrutor"
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </button>
-                    {activeDropdown === instructor.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)} />
-                        <div className={`absolute right-0 mt-2 w-40 rounded-xl border shadow-lg z-20 overflow-hidden ${
-                          darkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-100'
-                        }`}>
-                          <button onClick={() => navigate(`/instructors/${instructor.id}`)} className={`w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
-                            <Eye className="w-3 h-3" /> Ver Perfil
-                          </button>
-                          <button 
-                            onClick={() => navigate(`/instructors/${instructor.id}/edit`, { state: { instructor } })}
-                            className={`w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
-                          >
-                            <Edit2 className="w-3 h-3" /> Editar
-                          </button>
-                          <div className={`h-[1px] w-full ${darkMode ? 'bg-white/5' : 'bg-gray-50'}`} />
-                          <button onClick={() => handleDelete(instructor.id)} className="w-full px-4 py-2.5 text-left text-xs font-medium flex items-center gap-2 text-red-500 hover:bg-red-500/10">
-                            <Trash2 className="w-3 h-3" /> Excluir
-                          </button>
-                        </div>
-                      </>
-                    )}
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-6">
+                {/* Info Grid */}
+                <div className="space-y-3 mb-4">
                   <div className="flex items-center gap-2 text-xs opacity-70">
                     <Mail className="w-3.5 h-3.5" />
                     <span className="truncate">{instructor.email}</span>
@@ -339,9 +324,9 @@ const Instructors: React.FC = () => {
                     <Phone className="w-3.5 h-3.5" />
                     <span>{instructor.phone}</span>
                   </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex flex-wrap gap-1 mt-2">
                      {instructor.specialties.slice(0, 2).map((spec, i) => (
-                        <span key={i} className={`text-[10px] font-medium px-2 py-1 rounded border ${
+                        <span key={i} className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
                            darkMode ? 'bg-primary-500/10 border-primary-500/20 text-primary-300' : 'bg-primary-50 border-primary-100 text-primary-600'
                         }`}>
                            {spec}
@@ -350,16 +335,24 @@ const Instructors: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`pt-4 border-t flex items-center justify-between ${
+                {/* Footer Stats */}
+                <div className={`pt-3 border-t flex items-center justify-between ${
                    darkMode ? 'border-white/5' : 'border-gray-50'
                 }`}>
-                   <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusStyles(instructor.status)}`}>
-                     {instructor.status}
-                   </span>
-                   <span className="text-sm font-bold">R$ {instructor.hourlyRate}/h</span>
+                   <div>
+                      <p className="text-[10px] uppercase tracking-wider opacity-50 font-bold">Valor/Hora</p>
+                      <p className="text-xs font-bold">R$ {instructor.hourlyRate}</p>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-wider opacity-50 font-bold">Aulas</p>
+                      <p className="text-xs font-bold text-primary-500">{instructor.totalClasses}</p>
+                   </div>
                 </div>
                 
-                <button onClick={() => navigate(`/instructors/${instructor.id}`)} className="absolute inset-0 z-0" />
+                <button 
+                  onClick={() => navigate(`/instructors/${instructor.id}`)}
+                  className="absolute inset-0 z-0" 
+                />
               </div>
             ))}
           </div>
@@ -377,7 +370,6 @@ const Instructors: React.FC = () => {
                   <th className="p-4">Contato</th>
                   <th className="p-4">Especialidades</th>
                   <th className="p-4">Status</th>
-                  <th className="p-4">Performance</th>
                   <th className="p-4 text-right"></th>
                 </tr>
               </thead>
@@ -392,7 +384,7 @@ const Instructors: React.FC = () => {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <img src={inst.avatar} alt={inst.name} className="w-10 h-10 rounded-xl object-cover" />
+                        <img src={getAvatarSrc(inst)} alt={inst.name} className="w-10 h-10 rounded-xl object-cover" />
                         <div>
                           <p className="font-bold">{inst.name}</p>
                           <p className="text-xs opacity-50">R$ {inst.hourlyRate}/h</p>
@@ -418,9 +410,6 @@ const Instructors: React.FC = () => {
                        <span className={`px-2 py-1 rounded text-[10px] font-bold border ${getStatusStyles(inst.status)}`}>
                           {inst.status}
                         </span>
-                    </td>
-                    <td className="p-4">
-                       {renderStars(inst.rating)}
                     </td>
                     <td className="p-4 text-right">
                        <ChevronRight className="w-4 h-4 opacity-40" />
@@ -454,6 +443,17 @@ const Instructors: React.FC = () => {
         </div>
 
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Instrutor"
+        message="Tem certeza que deseja excluir este instrutor? Esta ação não pode ser desfeita."
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </main>
   );
 };

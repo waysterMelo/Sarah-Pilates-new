@@ -1,6 +1,7 @@
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\enums\EvaluationType.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\evaluation\EvolutionRecordResponseDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\enums\PaymentStatus.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\dashboard\DashboardStatsDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\web\StudentController.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\web\ScheduleController.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\converter\AnatomicalMarkerListConverter.java
@@ -11,6 +12,9 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\evaluation\PhysicalEvaluationRequestDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\evaluation\BodyMeasurements.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\service\ScheduleService.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\User.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\web\DashboardController.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\auth\RegisterRequestDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\SarahPilatesApplication.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\service\JpaUserDetailsService.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\schedule\Schedule.java
@@ -26,6 +30,7 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\security\jwt\TokenService.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\evaluation\BalanceScores.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\repository\InstructorRepository.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\service\DashboardService.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\evaluation\StrengthScores.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\evaluation\StrengthScoresDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\instructor\WorkingHours.java
@@ -35,6 +40,7 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\student\StudentRequestDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\document\DocumentResponseDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\mapper\InstructorMapper.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\service\AuthService.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\repository\EvolutionRecordRepository.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\mapper\DocumentMapper.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\security\JwtAuthEntryPoint.java
@@ -60,6 +66,8 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\enums\ClassIntensity.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\exception\GlobalExceptionHandler.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\web\AuthController.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\enums\UserStatus.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\exception\ResourceAlreadyExistsException.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\student\Document.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\repository\PhysicalEvaluationRepository.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\classtype\ClassTypeResponseDTO.java
@@ -68,10 +76,12 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\auth\AuthResponseDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\security\jwt\JwtAuthFilter.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\evaluation\AnatomicalMarker.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\evaluation\EvaluationAnamnesisDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\auth\AuthRequestDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\schedule\InstructorInfoDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\instructor\WorkingHoursDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\config\SecurityConfig.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\auth\UserResponseDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\evaluation\FmsScoresDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\dto\schedule\ScheduleResponseDTO.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\evaluation\FlexibilityScores.java
@@ -81,3 +91,4 @@ C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\domain\enums\InstructorStatus.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\web\EvaluationController.java
 C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\mapper\StudentMapper.java
+C:\Users\wayst\OneDrive\Desktop\Projetos\Sarah-Pilates-new\backend\src\main\java\com\sarahpilates\repository\UserRepository.java

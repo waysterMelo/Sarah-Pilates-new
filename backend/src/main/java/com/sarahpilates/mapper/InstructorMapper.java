@@ -18,23 +18,11 @@ public interface InstructorMapper {
     InstructorMapper INSTANCE = Mappers.getMapper(InstructorMapper.class);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
-    @Mapping(target = "accountNonExpired", ignore = true)
-    @Mapping(target = "accountNonLocked", ignore = true)
-    @Mapping(target = "credentialsNonExpired", ignore = true)
-    @Mapping(target = "enabled", ignore = true)
     Instructor toEntity(InstructorRequestDTO dto);
 
     InstructorResponseDTO toResponseDTO(Instructor entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "authorities", ignore = true)
-    @Mapping(target = "accountNonExpired", ignore = true)
-    @Mapping(target = "accountNonLocked", ignore = true)
-    @Mapping(target = "credentialsNonExpired", ignore = true)
-    @Mapping(target = "enabled", ignore = true)
     void updateEntityFromDto(InstructorRequestDTO dto, @MappingTarget Instructor entity);
 
     // MapStruct will automatically handle the list mapping

@@ -13,6 +13,7 @@ public interface EvolutionRecordMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "instructor", ignore = true)
+    @Mapping(target = "sessionNumber", source = "session")
     EvolutionRecord toEntity(EvolutionRecordRequestDTO dto);
 
     EvolutionRecordResponseDTO toResponseDTO(EvolutionRecord entity);
@@ -20,5 +21,6 @@ public interface EvolutionRecordMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "instructor", ignore = true)
+    @Mapping(target = "sessionNumber", source = "session")
     void updateEntityFromDto(EvolutionRecordRequestDTO dto, @MappingTarget EvolutionRecord entity);
 }

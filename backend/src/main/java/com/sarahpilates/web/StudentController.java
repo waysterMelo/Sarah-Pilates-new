@@ -74,6 +74,18 @@ public class StudentController {
         return new ResponseEntity<>(document, HttpStatus.CREATED);
     }
 
+    @GetMapping("/documents/{documentId}/download")
+    public ResponseEntity<org.springframework.core.io.Resource> downloadDocument(@PathVariable Long documentId) {
+        org.springframework.core.io.Resource resource = studentService.downloadDocument(documentId);
+
+        // Try to determine filename (or use ID if not available, though resource usually has filename)
+        String filename = resource.getFilename(); 
+        
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(resource);
+    }
+
     // --- Nested Evaluation Endpoints ---
 
     @GetMapping("/{studentId}/evaluations/physical")

@@ -111,7 +111,11 @@ const StudentForm: React.FC = () => {
             plan: data.plan,
             status: data.status,
             objectives: data.anamnesis?.objectives || '',
-            documents: data.documents || [],
+            documents: data.documents ? data.documents.map((doc: any) => ({
+              name: doc.fileName,
+              size: `${(doc.size / 1024 / 1024).toFixed(2)} MB`,
+              type: doc.fileType
+            })) : [],
             medical: {
               ...prev.medical,
               ...data.anamnesis // Spread the anamnesis data into the medical object
@@ -193,7 +197,26 @@ const StudentForm: React.FC = () => {
       try {
         await api.put(`/api/students/${id}`, studentDataPayload);
         console.log('✅ Sucesso ao editar!');
-        // Idealmente, aqui teria uma lógica para enviar novos arquivos para outro endpoint
+        
+        // Passo 2: Fazer upload dos novos documentos (se houver) na edição
+        if (documentFiles.length > 0) {
+          console.log(`📤 Iniciando upload de ${documentFiles.length} novos documentos...`);
+          
+          for (const file of documentFiles) {
+            const formDataDocs = new FormData();
+            formDataDocs.append('file', file);
+            
+            try {
+              await api.post(`/api/students/${id}/documents`, formDataDocs, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+              console.log(`✅ Documento "${file.name}" enviado com sucesso.`);
+            } catch (docErr) {
+              console.error(`❌ Falha ao enviar documento "${file.name}":`, docErr);
+            }
+          }
+        }
+
         navigate('/students');
       } catch (error: any) {
         console.error('❌ Erro ao editar:', error);

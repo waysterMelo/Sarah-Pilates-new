@@ -25,6 +25,8 @@ import api from '../src/services/api';
 
 import { useTheme } from '../src/contexts/ThemeContext';
 
+import ConfirmModal from '../src/components/ConfirmModal';
+
 interface ClassType {
   id: number;
   name: string;
@@ -50,6 +52,10 @@ const Classes: React.FC = () => {
   const [classes, setClasses] = useState<ClassType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<number | null>(null);
 
   const getIntensityColor = (intensity: 'Baixa' | 'Média' | 'Alta') => {
     switch (intensity) {
@@ -84,26 +90,33 @@ const Classes: React.FC = () => {
     fetchClasses();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja arquivar esta modalidade?')) {
-      console.group(`🚀 Tentativa de Deletar: Modalidade #${id}`);
-      console.log('ID para deletar:', id);
-      try {
-        await api.delete(`/api/classtypes/${id}`);
-        console.log('✅ Sucesso ao deletar!');
-        fetchClasses(); // Refresh data
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError('Falha ao arquivar modalidade.');
-      } finally {
-        console.groupEnd();
-      }
-    }
+  const handleDelete = (id: number) => {
+    setClassToDelete(id);
     setActiveDropdown(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!classToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Modalidade #${classToDelete}`);
+    console.log('ID para deletar:', classToDelete);
+    try {
+      await api.delete(`/api/classtypes/${classToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      fetchClasses(); // Refresh data
+      setIsDeleteModalOpen(false);
+      setClassToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
+      }
+      setError('Falha ao arquivar modalidade.');
+    } finally {
+      console.groupEnd();
+    }
   };
 
   return (
@@ -355,6 +368,17 @@ const Classes: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Arquivar Modalidade"
+        message="Tem certeza que deseja arquivar esta modalidade? Ela não estará mais disponível para novos agendamentos."
+        confirmText="Sim, arquivar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };

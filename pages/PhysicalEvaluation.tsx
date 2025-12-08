@@ -9,6 +9,8 @@ import PhysicalEvaluationForm from './PhysicalEvaluationForm';
 import PhysicalEvaluationDetails from './PhysicalEvaluationDetails';
 import api from '../src/services/api'; // Import the API service
 
+import ConfirmModal from '../src/components/ConfirmModal';
+
 const PhysicalEvaluation: React.FC = () => {
   const { darkMode } = useTheme();
   const navigate = useNavigate();
@@ -22,6 +24,10 @@ const PhysicalEvaluation: React.FC = () => {
   const [evaluations, setEvaluations] = useState([]); // Initialize as empty array
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState<string | null>(null); // Error state
+
+  // Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [evaluationToDelete, setEvaluationToDelete] = useState<number | null>(null);
 
   const fetchEvaluations = async () => {
     try {
@@ -90,26 +96,33 @@ const PhysicalEvaluation: React.FC = () => {
     }
   };
 
-  const handleDeleteEvaluation = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta avaliação?')) {
-      console.group(`🚀 Tentativa de Deletar: Avaliação Física #${id}`);
-      console.log('ID para deletar:', id);
+  const handleDeleteEvaluation = (id: number) => {
+    setEvaluationToDelete(id);
+    setActiveDropdown(null);
+    setIsDeleteModalOpen(true);
+  };
 
-      try {
-        await api.delete(`/api/evaluations/physical/${id}`);
-        console.log('✅ Sucesso ao deletar!');
-        fetchEvaluations(); // Refresh data
-        setActiveDropdown(null);
-      } catch (err: any) {
-        console.error('❌ Erro ao deletar:', err);
-        if (err.response) {
-          console.error('Status:', err.response.status);
-          console.error('Dados do Erro (Backend):', err.response.data);
-        }
-        setError('Erro ao excluir avaliação.');
-      } finally {
-        console.groupEnd();
+  const confirmDeleteEvaluation = async () => {
+    if (!evaluationToDelete) return;
+
+    console.group(`🚀 Tentativa de Deletar: Avaliação Física #${evaluationToDelete}`);
+    console.log('ID para deletar:', evaluationToDelete);
+
+    try {
+      await api.delete(`/api/evaluations/physical/${evaluationToDelete}`);
+      console.log('✅ Sucesso ao deletar!');
+      fetchEvaluations(); // Refresh data
+      setIsDeleteModalOpen(false);
+      setEvaluationToDelete(null);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar:', err);
+      if (err.response) {
+        console.error('Status:', err.response.status);
+        console.error('Dados do Erro (Backend):', err.response.data);
       }
+      setError('Erro ao excluir avaliação.');
+    } finally {
+      console.groupEnd();
     }
   };
 
@@ -121,7 +134,7 @@ const PhysicalEvaluation: React.FC = () => {
     return <div className="flex justify-center items-center h-screen"><p className="text-red-500">{error}</p></div>;
   }
 
-  const filteredEvaluations = evaluations.filter(e => 
+  const filteredEvaluations = evaluations.filter((e: any) => 
     e.studentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -322,6 +335,17 @@ const PhysicalEvaluation: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteEvaluation}
+        title="Excluir Avaliação Física"
+        message="Tem certeza que deseja excluir esta avaliação? Esta ação não pode ser desfeita."
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };

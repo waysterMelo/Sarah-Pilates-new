@@ -7,15 +7,13 @@ import com.sarahpilates.mapper.InstructorMapper;
 import com.sarahpilates.repository.InstructorRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +21,6 @@ public class InstructorService {
 
     private final InstructorRepository instructorRepository;
     private final InstructorMapper instructorMapper;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public InstructorResponseDTO createInstructor(InstructorRequestDTO instructorDTO) {
@@ -35,7 +32,6 @@ public class InstructorService {
         }
 
         Instructor instructor = instructorMapper.toEntity(instructorDTO);
-        instructor.setPassword(passwordEncoder.encode(instructorDTO.password()));
         if (instructor.getWorkingHours() != null) {
             instructor.getWorkingHours().forEach(wh -> wh.setInstructor(instructor));
         }
@@ -76,10 +72,6 @@ public class InstructorService {
         // Use the mapper to update basic fields
         instructorMapper.updateEntityFromDto(dto, existingInstructor);
 
-        // Handle password update only if a new one is provided
-        if (StringUtils.hasText(dto.password())) {
-            existingInstructor.setPassword(passwordEncoder.encode(dto.password()));
-        }
 
         // Handle nested working hours update
         if (dto.workingHours() != null) {

@@ -45,6 +45,21 @@ public class PhysicalEvaluation {
     private String clinicalDiagnosis;
     @Column(columnDefinition = "TEXT")
     private String medications;
+    
+    @Column(columnDefinition = "TEXT")
+    private String responsibleDoctor;
+    @Column(columnDefinition = "TEXT")
+    private String previousPilatesExperience;
+    @Column(columnDefinition = "TEXT")
+    private String historyOfPresentIllness;
+    @Column(columnDefinition = "TEXT")
+    private String associatedPathologies;
+    @Column(columnDefinition = "TEXT")
+    private String complementaryExams;
+    @Column(columnDefinition = "TEXT")
+    private String historyOfPastIllness;
+    @Column(columnDefinition = "TEXT")
+    private String physicalFunctionalExam;
 
     // --- ANTHROPOMETRY ---
     private Double weight; // kg

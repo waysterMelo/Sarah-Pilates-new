@@ -12,20 +12,25 @@ public record PhysicalEvaluationRequestDTO(
     @NotNull Long instructorId,
     @NotNull LocalDate date,
     @NotNull EvaluationType type,
-    String mainComplaint,
-    String clinicalDiagnosis,
-    String medications,
+    
+    EvaluationAnamnesisDTO anamnesis, // Updated to specific DTO
+    
     Double weight,
     Double height,
+    Double bmi, // Added BMI
     String bloodPressure,
     Integer heartRate,
     Double bodyFat,
     Double muscleMass,
+    
     BodyMeasurementsDTO measurements,
-    FmsScoresDTO fmsScores,
-    FlexibilityScoresDTO flexibilityScores,
-    StrengthScoresDTO strengthScores,
-    BalanceScoresDTO balanceScores,
+    
+    // Renamed to match frontend keys (fms, flexibility, strength, balance)
+    FmsScoresDTO fms, 
+    FlexibilityScoresDTO flexibility,
+    StrengthScoresDTO strength,
+    BalanceScoresDTO balance,
+    
     List<AnatomicalMarker> anatomicalMarkers,
     String medicalObservations,
     String objectives,

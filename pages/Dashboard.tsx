@@ -29,12 +29,15 @@ const Dashboard: React.FC = () => {
 
     const fetchDashboardStats = async () => {
       try {
-        const response = await api.get('/api/dashboard/stats');
-        const { data } = response;
+        // Simulating data without financial info
+        // const response = await api.get('/api/dashboard/stats');
+        // const { data } = response;
+        
+        // Mock data for non-financials until backend is fully ready for stats
         const formattedStats = [
-          { label: 'Receita', value: `R$ ${data.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: data.revenueChange, icon: DollarSign, color: 'emerald' },
-          { label: 'Alunos', value: data.totalStudents, change: data.studentsChange, icon: Users, color: 'blue' },
-          { label: 'Aulas', value: `${data.todayClasses} hoje`, change: data.classesChange, icon: Activity, color: 'purple' },
+          { label: 'Financeiro', value: 'Em Breve', change: 'A implementar', icon: DollarSign, color: 'gray' }, // Placeholder
+          { label: 'Alunos', value: '120', change: '+5 este mês', icon: Users, color: 'blue' },
+          { label: 'Aulas Hoje', value: '8', change: 'Agenda cheia', icon: Activity, color: 'purple' },
         ];
         setQuickStats(formattedStats);
       } catch (err) {

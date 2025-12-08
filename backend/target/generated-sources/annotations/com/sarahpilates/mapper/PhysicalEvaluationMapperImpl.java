@@ -12,6 +12,7 @@ import com.sarahpilates.domain.instructor.Instructor;
 import com.sarahpilates.domain.student.Student;
 import com.sarahpilates.dto.evaluation.BalanceScoresDTO;
 import com.sarahpilates.dto.evaluation.BodyMeasurementsDTO;
+import com.sarahpilates.dto.evaluation.EvaluationAnamnesisDTO;
 import com.sarahpilates.dto.evaluation.FlexibilityScoresDTO;
 import com.sarahpilates.dto.evaluation.FmsScoresDTO;
 import com.sarahpilates.dto.evaluation.PhysicalEvaluationRequestDTO;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-12-05T12:18:39-0300",
+    date = "2025-12-08T14:05:01-0300",
     comments = "version: 1.5.5.Final, compiler: javac, environment: Java 22.0.2 (Oracle Corporation)"
 )
 @Component
@@ -41,11 +42,22 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
 
         PhysicalEvaluation physicalEvaluation = new PhysicalEvaluation();
 
+        physicalEvaluation.setFmsScores( fmsScoresDTOToFmsScores( dto.fms() ) );
+        physicalEvaluation.setFlexibilityScores( flexibilityScoresDTOToFlexibilityScores( dto.flexibility() ) );
+        physicalEvaluation.setStrengthScores( strengthScoresDTOToStrengthScores( dto.strength() ) );
+        physicalEvaluation.setBalanceScores( balanceScoresDTOToBalanceScores( dto.balance() ) );
+        physicalEvaluation.setMainComplaint( dtoAnamnesisMainComplaint( dto ) );
+        physicalEvaluation.setClinicalDiagnosis( dtoAnamnesisClinicalDiagnosis( dto ) );
+        physicalEvaluation.setMedications( dtoAnamnesisMedications( dto ) );
+        physicalEvaluation.setResponsibleDoctor( dtoAnamnesisResponsibleDoctor( dto ) );
+        physicalEvaluation.setPreviousPilatesExperience( dtoAnamnesisPreviousPilatesExperience( dto ) );
+        physicalEvaluation.setHistoryOfPresentIllness( dtoAnamnesisHistoryOfPresentIllness( dto ) );
+        physicalEvaluation.setAssociatedPathologies( dtoAnamnesisAssociatedPathologies( dto ) );
+        physicalEvaluation.setComplementaryExams( dtoAnamnesisComplementaryExams( dto ) );
+        physicalEvaluation.setHistoryOfPastIllness( dtoAnamnesisHistoryOfPastIllness( dto ) );
+        physicalEvaluation.setPhysicalFunctionalExam( dtoAnamnesisPhysicalFunctionalExam( dto ) );
         physicalEvaluation.setDate( dto.date() );
         physicalEvaluation.setType( dto.type() );
-        physicalEvaluation.setMainComplaint( dto.mainComplaint() );
-        physicalEvaluation.setClinicalDiagnosis( dto.clinicalDiagnosis() );
-        physicalEvaluation.setMedications( dto.medications() );
         physicalEvaluation.setWeight( dto.weight() );
         physicalEvaluation.setHeight( dto.height() );
         physicalEvaluation.setBloodPressure( dto.bloodPressure() );
@@ -53,10 +65,6 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         physicalEvaluation.setBodyFat( dto.bodyFat() );
         physicalEvaluation.setMuscleMass( dto.muscleMass() );
         physicalEvaluation.setMeasurements( bodyMeasurementsDTOToBodyMeasurements( dto.measurements() ) );
-        physicalEvaluation.setFmsScores( fmsScoresDTOToFmsScores( dto.fmsScores() ) );
-        physicalEvaluation.setFlexibilityScores( flexibilityScoresDTOToFlexibilityScores( dto.flexibilityScores() ) );
-        physicalEvaluation.setStrengthScores( strengthScoresDTOToStrengthScores( dto.strengthScores() ) );
-        physicalEvaluation.setBalanceScores( balanceScoresDTOToBalanceScores( dto.balanceScores() ) );
         List<AnatomicalMarker> list = dto.anatomicalMarkers();
         if ( list != null ) {
             physicalEvaluation.setAnatomicalMarkers( new ArrayList<AnatomicalMarker>( list ) );
@@ -141,11 +149,54 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
             return;
         }
 
+        if ( dto.fms() != null ) {
+            if ( entity.getFmsScores() == null ) {
+                entity.setFmsScores( new FmsScores() );
+            }
+            fmsScoresDTOToFmsScores1( dto.fms(), entity.getFmsScores() );
+        }
+        else {
+            entity.setFmsScores( null );
+        }
+        if ( dto.flexibility() != null ) {
+            if ( entity.getFlexibilityScores() == null ) {
+                entity.setFlexibilityScores( new FlexibilityScores() );
+            }
+            flexibilityScoresDTOToFlexibilityScores1( dto.flexibility(), entity.getFlexibilityScores() );
+        }
+        else {
+            entity.setFlexibilityScores( null );
+        }
+        if ( dto.strength() != null ) {
+            if ( entity.getStrengthScores() == null ) {
+                entity.setStrengthScores( new StrengthScores() );
+            }
+            strengthScoresDTOToStrengthScores1( dto.strength(), entity.getStrengthScores() );
+        }
+        else {
+            entity.setStrengthScores( null );
+        }
+        if ( dto.balance() != null ) {
+            if ( entity.getBalanceScores() == null ) {
+                entity.setBalanceScores( new BalanceScores() );
+            }
+            balanceScoresDTOToBalanceScores1( dto.balance(), entity.getBalanceScores() );
+        }
+        else {
+            entity.setBalanceScores( null );
+        }
+        entity.setMainComplaint( dtoAnamnesisMainComplaint( dto ) );
+        entity.setClinicalDiagnosis( dtoAnamnesisClinicalDiagnosis( dto ) );
+        entity.setMedications( dtoAnamnesisMedications( dto ) );
+        entity.setResponsibleDoctor( dtoAnamnesisResponsibleDoctor( dto ) );
+        entity.setPreviousPilatesExperience( dtoAnamnesisPreviousPilatesExperience( dto ) );
+        entity.setHistoryOfPresentIllness( dtoAnamnesisHistoryOfPresentIllness( dto ) );
+        entity.setAssociatedPathologies( dtoAnamnesisAssociatedPathologies( dto ) );
+        entity.setComplementaryExams( dtoAnamnesisComplementaryExams( dto ) );
+        entity.setHistoryOfPastIllness( dtoAnamnesisHistoryOfPastIllness( dto ) );
+        entity.setPhysicalFunctionalExam( dtoAnamnesisPhysicalFunctionalExam( dto ) );
         entity.setDate( dto.date() );
         entity.setType( dto.type() );
-        entity.setMainComplaint( dto.mainComplaint() );
-        entity.setClinicalDiagnosis( dto.clinicalDiagnosis() );
-        entity.setMedications( dto.medications() );
         entity.setWeight( dto.weight() );
         entity.setHeight( dto.height() );
         entity.setBloodPressure( dto.bloodPressure() );
@@ -160,42 +211,6 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         }
         else {
             entity.setMeasurements( null );
-        }
-        if ( dto.fmsScores() != null ) {
-            if ( entity.getFmsScores() == null ) {
-                entity.setFmsScores( new FmsScores() );
-            }
-            fmsScoresDTOToFmsScores1( dto.fmsScores(), entity.getFmsScores() );
-        }
-        else {
-            entity.setFmsScores( null );
-        }
-        if ( dto.flexibilityScores() != null ) {
-            if ( entity.getFlexibilityScores() == null ) {
-                entity.setFlexibilityScores( new FlexibilityScores() );
-            }
-            flexibilityScoresDTOToFlexibilityScores1( dto.flexibilityScores(), entity.getFlexibilityScores() );
-        }
-        else {
-            entity.setFlexibilityScores( null );
-        }
-        if ( dto.strengthScores() != null ) {
-            if ( entity.getStrengthScores() == null ) {
-                entity.setStrengthScores( new StrengthScores() );
-            }
-            strengthScoresDTOToStrengthScores1( dto.strengthScores(), entity.getStrengthScores() );
-        }
-        else {
-            entity.setStrengthScores( null );
-        }
-        if ( dto.balanceScores() != null ) {
-            if ( entity.getBalanceScores() == null ) {
-                entity.setBalanceScores( new BalanceScores() );
-            }
-            balanceScoresDTOToBalanceScores1( dto.balanceScores(), entity.getBalanceScores() );
-        }
-        else {
-            entity.setBalanceScores( null );
         }
         if ( entity.getAnatomicalMarkers() != null ) {
             List<AnatomicalMarker> list = dto.anatomicalMarkers();
@@ -217,22 +232,6 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         entity.setObjectives( dto.objectives() );
         entity.setTreatmentPlan( dto.treatmentPlan() );
         entity.setNextEvaluationDate( dto.nextEvaluationDate() );
-    }
-
-    protected BodyMeasurements bodyMeasurementsDTOToBodyMeasurements(BodyMeasurementsDTO bodyMeasurementsDTO) {
-        if ( bodyMeasurementsDTO == null ) {
-            return null;
-        }
-
-        BodyMeasurements bodyMeasurements = new BodyMeasurements();
-
-        bodyMeasurements.setChest( bodyMeasurementsDTO.chest() );
-        bodyMeasurements.setWaist( bodyMeasurementsDTO.waist() );
-        bodyMeasurements.setHip( bodyMeasurementsDTO.hip() );
-        bodyMeasurements.setThigh( bodyMeasurementsDTO.thigh() );
-        bodyMeasurements.setArm( bodyMeasurementsDTO.arm() );
-
-        return bodyMeasurements;
     }
 
     protected FmsScores fmsScoresDTOToFmsScores(FmsScoresDTO fmsScoresDTO) {
@@ -295,6 +294,172 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         balanceScores.setProprioception( balanceScoresDTO.proprioception() );
 
         return balanceScores;
+    }
+
+    private String dtoAnamnesisMainComplaint(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String mainComplaint = anamnesis.mainComplaint();
+        if ( mainComplaint == null ) {
+            return null;
+        }
+        return mainComplaint;
+    }
+
+    private String dtoAnamnesisClinicalDiagnosis(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String clinicalDiagnosis = anamnesis.clinicalDiagnosis();
+        if ( clinicalDiagnosis == null ) {
+            return null;
+        }
+        return clinicalDiagnosis;
+    }
+
+    private String dtoAnamnesisMedications(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String medications = anamnesis.medications();
+        if ( medications == null ) {
+            return null;
+        }
+        return medications;
+    }
+
+    private String dtoAnamnesisResponsibleDoctor(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String responsibleDoctor = anamnesis.responsibleDoctor();
+        if ( responsibleDoctor == null ) {
+            return null;
+        }
+        return responsibleDoctor;
+    }
+
+    private String dtoAnamnesisPreviousPilatesExperience(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String previousPilatesExperience = anamnesis.previousPilatesExperience();
+        if ( previousPilatesExperience == null ) {
+            return null;
+        }
+        return previousPilatesExperience;
+    }
+
+    private String dtoAnamnesisHistoryOfPresentIllness(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String historyOfPresentIllness = anamnesis.historyOfPresentIllness();
+        if ( historyOfPresentIllness == null ) {
+            return null;
+        }
+        return historyOfPresentIllness;
+    }
+
+    private String dtoAnamnesisAssociatedPathologies(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String associatedPathologies = anamnesis.associatedPathologies();
+        if ( associatedPathologies == null ) {
+            return null;
+        }
+        return associatedPathologies;
+    }
+
+    private String dtoAnamnesisComplementaryExams(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String complementaryExams = anamnesis.complementaryExams();
+        if ( complementaryExams == null ) {
+            return null;
+        }
+        return complementaryExams;
+    }
+
+    private String dtoAnamnesisHistoryOfPastIllness(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String historyOfPastIllness = anamnesis.historyOfPastIllness();
+        if ( historyOfPastIllness == null ) {
+            return null;
+        }
+        return historyOfPastIllness;
+    }
+
+    private String dtoAnamnesisPhysicalFunctionalExam(PhysicalEvaluationRequestDTO physicalEvaluationRequestDTO) {
+        if ( physicalEvaluationRequestDTO == null ) {
+            return null;
+        }
+        EvaluationAnamnesisDTO anamnesis = physicalEvaluationRequestDTO.anamnesis();
+        if ( anamnesis == null ) {
+            return null;
+        }
+        String physicalFunctionalExam = anamnesis.physicalFunctionalExam();
+        if ( physicalFunctionalExam == null ) {
+            return null;
+        }
+        return physicalFunctionalExam;
+    }
+
+    protected BodyMeasurements bodyMeasurementsDTOToBodyMeasurements(BodyMeasurementsDTO bodyMeasurementsDTO) {
+        if ( bodyMeasurementsDTO == null ) {
+            return null;
+        }
+
+        BodyMeasurements bodyMeasurements = new BodyMeasurements();
+
+        bodyMeasurements.setChest( bodyMeasurementsDTO.chest() );
+        bodyMeasurements.setWaist( bodyMeasurementsDTO.waist() );
+        bodyMeasurements.setHip( bodyMeasurementsDTO.hip() );
+        bodyMeasurements.setThigh( bodyMeasurementsDTO.thigh() );
+        bodyMeasurements.setArm( bodyMeasurementsDTO.arm() );
+
+        return bodyMeasurements;
     }
 
     protected StudentInfoDTO studentToStudentInfoDTO(Student student) {
@@ -435,18 +600,6 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         return balanceScoresDTO;
     }
 
-    protected void bodyMeasurementsDTOToBodyMeasurements1(BodyMeasurementsDTO bodyMeasurementsDTO, BodyMeasurements mappingTarget) {
-        if ( bodyMeasurementsDTO == null ) {
-            return;
-        }
-
-        mappingTarget.setChest( bodyMeasurementsDTO.chest() );
-        mappingTarget.setWaist( bodyMeasurementsDTO.waist() );
-        mappingTarget.setHip( bodyMeasurementsDTO.hip() );
-        mappingTarget.setThigh( bodyMeasurementsDTO.thigh() );
-        mappingTarget.setArm( bodyMeasurementsDTO.arm() );
-    }
-
     protected void fmsScoresDTOToFmsScores1(FmsScoresDTO fmsScoresDTO, FmsScores mappingTarget) {
         if ( fmsScoresDTO == null ) {
             return;
@@ -491,5 +644,17 @@ public class PhysicalEvaluationMapperImpl implements PhysicalEvaluationMapper {
         mappingTarget.setStaticBalance( balanceScoresDTO.staticBalance() );
         mappingTarget.setDynamicBalance( balanceScoresDTO.dynamicBalance() );
         mappingTarget.setProprioception( balanceScoresDTO.proprioception() );
+    }
+
+    protected void bodyMeasurementsDTOToBodyMeasurements1(BodyMeasurementsDTO bodyMeasurementsDTO, BodyMeasurements mappingTarget) {
+        if ( bodyMeasurementsDTO == null ) {
+            return;
+        }
+
+        mappingTarget.setChest( bodyMeasurementsDTO.chest() );
+        mappingTarget.setWaist( bodyMeasurementsDTO.waist() );
+        mappingTarget.setHip( bodyMeasurementsDTO.hip() );
+        mappingTarget.setThigh( bodyMeasurementsDTO.thigh() );
+        mappingTarget.setArm( bodyMeasurementsDTO.arm() );
     }
 }
